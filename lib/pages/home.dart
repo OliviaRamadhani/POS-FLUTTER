@@ -157,18 +157,18 @@ List categories=[
                   ],)
                 ],),
               ),
-              
+
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
                 child: Column(children: [
-                  Image.asset("images/khao.jpeg", height: 150, width: 150, fit: BoxFit.cover,),
-                  Text("Khao Pad", style: AppWidget.semiboldTextFieldStyle(),),
+                  Image.asset("images/Yam Nua.jpg", height: 150, width: 150, fit: BoxFit.cover,),
+                  Text("Yam Nua", style: AppWidget.semiboldTextFieldStyle(),),
                   SizedBox(height: 18.0,),
                   Row(
                     
                     children: [
-                    Text("\$100", style: TextStyle(color: Color(0xFFfd6f3e), fontSize: 22.0, fontWeight: FontWeight.bold),),
+                    Text("\$50.000", style: TextStyle(color: Color(0xFFfd6f3e), fontSize: 22.0, fontWeight: FontWeight.bold),),
                     SizedBox(width: 40.0,),
                     Container(
                       padding: EdgeInsets.all(5),
