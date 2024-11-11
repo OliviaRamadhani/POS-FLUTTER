@@ -7,7 +7,8 @@ class Onboarding extends StatefulWidget {
   State<Onboarding> createState() => _OnboardingState();
 }
 
-class _OnboardingState extends State<Onboarding> with SingleTickerProviderStateMixin {
+class _OnboardingState extends State<Onboarding>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _imageOpacity;
   late Animation<double> _textOpacity;
@@ -29,10 +30,12 @@ class _OnboardingState extends State<Onboarding> with SingleTickerProviderStateM
     );
 
     _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Interval(0.5, 1.0, curve: Curves.easeInOut)),
+      CurvedAnimation(
+          parent: _controller,
+          curve: Interval(0.5, 1.0, curve: Curves.easeInOut)),
     );
 
-    _buttonScale = Tween<double>(begin: 0.5, end: 0.8).animate(
+    _buttonScale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
     );
 
@@ -56,18 +59,22 @@ class _OnboardingState extends State<Onboarding> with SingleTickerProviderStateM
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              flex: 3,
-              child: FadeTransition(
-                opacity: _imageOpacity,
-                child: Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100.0),
-                    child: Image.asset("images/sss1.png", fit: BoxFit.cover),
+              flex: 7,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    top: 90.0), // Adjust this value to move the image down
+                child: FadeTransition(
+                  opacity: _imageOpacity,
+                  child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100.0),
+                      child: Image.asset("images/sss1.png", fit: BoxFit.cover),
+                    ),
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             Expanded(
               flex: 2,
               child: FadeTransition(
@@ -76,18 +83,18 @@ class _OnboardingState extends State<Onboarding> with SingleTickerProviderStateM
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Explore\nThe Best\nThailand Food And Drinks",
+                      "Experience Thai Bliss!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 30.0,
                         fontWeight: FontWeight.bold,
-                        height: 1.3,
+                        height: 1,
                       ),
                     ),
                     SizedBox(height: 20),
                     Text(
-                      "Discover delicious food and drinks from Thailand that will make your taste buds dance.",
+                      "Join us for a delightful dining experience with authentic flavors. Discover the rich culinary heritage of Thailand, crafted with love and tradition.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.grey[700],
@@ -98,31 +105,33 @@ class _OnboardingState extends State<Onboarding> with SingleTickerProviderStateM
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: 30),
             Expanded(
               flex: 1,
               child: ScaleTransition(
                 scale: _buttonScale,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10), // Reduced padding for a smaller button
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30), // Slightly rounded corners
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 14), // Larger button padding
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(30), // Rounded corners
+                    ),
+                    backgroundColor: const Color.fromARGB(255, 5, 11, 105),
+                    shadowColor: Colors.black.withOpacity(0.4),
+                    elevation: 8,
                   ),
-                  backgroundColor: const Color.fromARGB(255, 35, 42, 134),
-                  shadowColor: Colors.black.withOpacity(0.4),
-                  elevation: 8,
-                ),
-                onPressed: () {
-                  // Add navigation or action here
-                },
-                child: Text(
-                  "Get Started",
-                  style: TextStyle(fontSize: 22, color: Colors.white), // Reduced font size
+                  onPressed: () {
+                    // Add navigation or action here
+                  },
+                  child: Text(
+                    "Get Started",
+                    style: TextStyle(fontSize: 22, color: Colors.white),
+                  ),
                 ),
               ),
             ),
-          ),
           ],
         ),
       ),
