@@ -10,24 +10,10 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 List categories=[
-  "images/Larb.jpg",
-  "images/Savoey.jpg",
-  "images/Coconut Water.jpg",
-  "images/Gaeng Som.jpg",
-  "images/Khanom Jeen Nam Ya.jpg",
-  "images/khao.jpeg",
-  "images/Lod Chong.jpg",
-  "images/Mango Sticky Rice.jpg",
-  "images/P Aor.jpg",
-  "images/pad.jpeg",
-  "images/Pranakorn .jpg",
-  "images/soi.jpeg",
-  "images/somtam.jpeg",
-  "images/Tako.jpg",
-  "images/Tamarind Juice.jpg",
-  "images/thai.jpeg",
-  "images/Tom Kha Kai.jpg",
-  "images/Yam Nua.jpg"
+  "images/drink.png",
+  "images/food.png",
+  "images/dessert.png"
+  
 
 ];
 
@@ -69,7 +55,7 @@ List categories=[
                 decoration: InputDecoration(border: InputBorder.none, hintText: "Search Products", hintStyle: AppWidget.LightTextFieldStyle(), prefixIcon: Icon(Icons.search, color: Colors.black,)),
               ),),
               SizedBox(
-                height: 20.0,
+                height: 50.0,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -88,7 +74,7 @@ List categories=[
         children: [
             Container(
               height: 130,
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(30),
         margin: EdgeInsets.only(right: 20.0),
         decoration: BoxDecoration(
           color: Color(0xFFFD6F3E) ,
@@ -112,7 +98,6 @@ List categories=[
                 itemBuilder: (context, index){
                   return CategoryTile(image: categories[index]);
                 }),
-            
             ),
           ),
         ],
@@ -139,6 +124,7 @@ List categories=[
             scrollDirection: Axis.horizontal,
             children: [
               Container(
+                margin: EdgeInsets.only(right: 20.0),
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
                 child: Column(children: [
@@ -159,6 +145,7 @@ List categories=[
               ),
 
               Container(
+                margin: EdgeInsets.only(right: 20.0),
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
                 child: Column(children: [
@@ -168,7 +155,27 @@ List categories=[
                   Row(
                     
                     children: [
-                    Text("\$50.000", style: TextStyle(color: Color(0xFFfd6f3e), fontSize: 22.0, fontWeight: FontWeight.bold),),
+                    Text("\$50", style: TextStyle(color: Color(0xFFfd6f3e), fontSize: 22.0, fontWeight: FontWeight.bold),),
+                    SizedBox(width: 40.0,),
+                    Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(color: Color(0xFFfd6f3e),borderRadius: BorderRadius.circular(7)),
+                      child: Icon(Icons.add, color: Colors.white,))
+                  ],)
+                ],),
+              ),
+
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                child: Column(children: [
+                  Image.asset("images/Yam Nua.jpg", height: 150, width: 150, fit: BoxFit.cover,),
+                  Text("Yam Nua", style: AppWidget.semiboldTextFieldStyle(),),
+                  SizedBox(height: 18.0,),
+                  Row(
+                    
+                    children: [
+                    Text("\$50", style: TextStyle(color: Color(0xFFfd6f3e), fontSize: 22.0, fontWeight: FontWeight.bold),),
                     SizedBox(width: 40.0,),
                     Container(
                       padding: EdgeInsets.all(5),
@@ -194,21 +201,26 @@ class CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      margin: EdgeInsets.only(right: 20.0),
-      decoration: BoxDecoration(
-        color: Colors.white , borderRadius: BorderRadius.circular(10)
+    return GestureDetector(
+      onTap: () {
+        
+      },
+      child: Container(
+        padding: EdgeInsets.all(20),
+        margin: EdgeInsets.only(right: 20.0),
+        decoration: BoxDecoration(
+          color: Colors.white , borderRadius: BorderRadius.circular(10)
+        ),
+        height: 90,
+        width: 90,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+        Image.asset(image, height: 50, width: 50, fit: BoxFit.cover,),
+      
+        Icon(Icons.arrow_forward)
+        ],),
       ),
-      height: 90,
-      width: 90,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-      Image.asset(image, height: 50, width: 50, fit: BoxFit.cover,),
-
-      Icon(Icons.arrow_forward)
-      ],),
     );
   }
 }
