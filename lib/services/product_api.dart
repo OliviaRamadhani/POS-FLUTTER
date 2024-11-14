@@ -7,7 +7,7 @@ class ProductApi {
 
   // Fetch all products (Read)
   Future<List<Product>> fetchProducts() async {
-    final response = await http.post(Uri.parse(apiUrl));
+    final response = await http.get(Uri.parse(apiUrl));
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);

@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // Import ImagePicker
 import '/services/product_api.dart';
 import '/models/product_model.dart';
 
@@ -16,9 +18,8 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
   final _formKey = GlobalKey<FormState>();
   late String name;
   late String description;
-  late String imageUrl;
+  late File? imageFile;  // Menggunakan File untuk gambar
   late int price;
-  late bool isSoldOut;
   final ProductApi productApi = ProductApi();
 
   @override
@@ -29,16 +30,26 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
       final product = widget.product!;
       name = product.name;
       description = product.description;
-      imageUrl = product.imageUrl;
+      imageFile = null; // Anda bisa menggunakan URL gambar untuk edit jika diperlukan
       price = product.price;
-      isSoldOut = product.isSoldOut;
     } else {
       // Jika tambah, buat data kosong
       name = '';
       description = '';
-      imageUrl = '';
+      imageFile = null;
       price = 0;
-      isSoldOut = false;
+    }
+  }
+
+  // Fungsi untuk memilih gambar dari galeri atau kamera
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);  // Simpan gambar yang dipilih
+      });
     }
   }
 
@@ -76,16 +87,22 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                   return null;
                 },
               ),
-              TextFormField(
-                initialValue: imageUrl,
-                decoration: InputDecoration(labelText: 'Image URL'),
-                onChanged: (value) => setState(() => imageUrl = value),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an image URL';
-                  }
-                  return null;
-                },
+              // Gambar produk
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  color: Colors.grey[200],
+                  child: imageFile == null
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, color: Colors.grey),
+                            Text('Tap to pick an image'),
+                          ],
+                        )
+                      : Image.file(imageFile!, height: 150), // Menampilkan gambar yang dipilih
+                ),
               ),
               TextFormField(
                 initialValue: price.toString(),
@@ -98,11 +115,6 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                   }
                   return null;
                 },
-              ),
-              SwitchListTile(
-                title: Text('Sold Out'),
-                value: isSoldOut,
-                onChanged: (value) => setState(() => isSoldOut = value),
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -118,13 +130,20 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (imageFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select an image')),
+        );
+        return;
+      }
+
       final product = Product(
         id: widget.isEdit ? widget.product!.id : 0,  // Gunakan ID produk yang ada saat edit
         name: name,
         description: description,
-        imageUrl: imageUrl,
+        imageUrl: '',  // Anda bisa meng-upload gambar ke server dan dapatkan URL-nya
         price: price,
-        isSoldOut: isSoldOut,
+        isSoldOut: false,  // Default isSoldOut = false
       );
 
       try {
