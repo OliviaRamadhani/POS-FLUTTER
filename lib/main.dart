@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pos2_flutter/screens/welcome_screen.dart';
 import 'package:pos2_flutter/theme/theme.dart';
-import 'package:pos2_flutter/pages/bottomnav.dart';
-import 'package:pos2_flutter/pages/home.dart';
-import 'package:pos2_flutter/pages/login.dart';
-import 'package:pos2_flutter/pages/onboarding.dart';
-import 'package:pos2_flutter/pages/product_detail.dart';
+import 'package:pos2_flutter/screens/bottomnav.dart';
+import 'package:pos2_flutter/screens/home.dart';
+import 'package:pos2_flutter/screens/login.dart';
+import 'package:pos2_flutter/screens/onboarding.dart';
+import 'package:pos2_flutter/screens/product_detail.dart';
 
 
 void main() {

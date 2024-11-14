@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Import ImagePicker
+// import 'package:image_picker/image_picker.dart'; // Import ImagePicker
 import '/services/product_api.dart';
 import '/models/product_model.dart';
 
@@ -42,16 +42,16 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
   }
 
   // Fungsi untuk memilih gambar dari galeri atau kamera
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  // Future<void> _pickImage() async {
+  //   final picker = ImagePicker();
+  //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        imageFile = File(pickedFile.path);  // Simpan gambar yang dipilih
-      });
-    }
-  }
+  //   if (pickedFile != null) {
+  //     setState(() {
+  //       imageFile = File(pickedFile.path);  // Simpan gambar yang dipilih
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -88,22 +88,22 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                 },
               ),
               // Gambar produk
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  padding: EdgeInsets.all(10),
-                  color: Colors.grey[200],
-                  child: imageFile == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_a_photo, color: Colors.grey),
-                            Text('Tap to pick an image'),
-                          ],
-                        )
-                      : Image.file(imageFile!, height: 150), // Menampilkan gambar yang dipilih
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: _pickImage,
+              //   child: Container(
+              //     padding: EdgeInsets.all(10),
+              //     color: Colors.grey[200],
+              //     child: imageFile == null
+              //         ? Column(
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //             children: [
+              //               Icon(Icons.add_a_photo, color: Colors.grey),
+              //               Text('Tap to pick an image'),
+              //             ],
+              //           )
+              //         : Image.file(imageFile!, height: 150), // Menampilkan gambar yang dipilih
+              //   ),
+              // ),
               TextFormField(
                 initialValue: price.toString(),
                 decoration: InputDecoration(labelText: 'Price'),
