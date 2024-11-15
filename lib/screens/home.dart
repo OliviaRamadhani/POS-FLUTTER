@@ -25,83 +25,119 @@
         }
 
         class _HomeState extends State<Home> {
-          final PageController _pageController = PageController();
-          int _currentIndex = 0;
-          String _selectedFilter = "All";
-          late Timer _timer;
+        final PageController _pageController = PageController();
+        int _currentIndex = 0;
+        String _selectedFilter = "All"; 
+        late Timer _flashSaleTimer;  // Timer for flash sale countdown
+        late Timer _pageTransitionTimer;  // Timer for page transitions
+        late GoogleMapController _mapController;
+        LatLng _selectedLocation = LatLng(0, 0); // Default location
+        final Set<Marker> _markers = {};
 
-          late GoogleMapController _mapController;
-          LatLng _selectedLocation = LatLng(0, 0); // Default location
-          final Set<Marker> _markers = {};
+        // Remaining time for Flash Sale
+        Duration _remainingTime = Duration(hours: 10, minutes: 20, seconds: 00);
 
-          final List<Map<String, String>> discountItems = [
-            {
-              "title": "Seasonal Discount",
-              "discount": "Up to 50% off",
-              "imagePath": "images/bgg.png",
-            },
-            {
-              "title": "Limited Time Offer",
-              "discount": "Save 30%",
-              "imagePath": "images/food.png",
-            },
-            {
-              "title": "Special Promotion",
-              "discount": "20% off on desserts",
-              "imagePath": "images/drink.png",
-            },
-          ];
+        final List<Map<String, String>> discountItems = [
+          {
+            "title": "Seasonal Discount",
+            "discount": "Up to 50% off",
+            "imagePath": "images/bgg.png",
+          },
+          {
+            "title": "Limited Time Offer",
+            "discount": "Save 30%",
+            "imagePath": "images/food.png",
+          },
+          {
+            "title": "Special Promotion",
+            "discount": "20% off on desserts",
+            "imagePath": "images/drink.png",
+          },
+        ];
 
-          @override
-          void initState() {
-            super.initState();
+        // List to store like counts for each product
+        List<int> likeCounts = List<int>.filled(18, 0); // Assuming you have 18 products
 
-            // Set up the Timer to automatically change the page every 3 seconds
-            _timer = Timer.periodic(Duration(seconds: 6), (timer) {
-              if (_currentIndex < discountItems.length - 1) {
-                _currentIndex++;
-              } else {
-                _currentIndex = 0;
-              }
-
-              // Animate to the next page with a slower transition and a smoother curve
-              _pageController.animateToPage(
-                _currentIndex,
-                duration: Duration(milliseconds: 2500), // Further slow down the transition (1.5 seconds)
-                curve: Curves.easeInOut, // More gradual, smooth curve
-              );
-
-              setState(() {}); // Rebuild the widget to update the indicator
+        @override
+        void initState() {
+          super.initState();
+          
+              // Start countdown for Flash Sale (every second)
+        _flashSaleTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+          if (_remainingTime.inSeconds > 0) {
+            setState(() {
+              _remainingTime = _remainingTime - Duration(seconds: 1);
             });
+          } else {
+            _flashSaleTimer.cancel(); // Stop the countdown when time is up
           }
+        });
 
-          @override
+        // Start page transition (every 6 seconds)
+        _pageTransitionTimer = Timer.periodic(Duration(seconds: 6), (timer) {
+          setState(() {
+            if (_currentIndex < discountItems.length - 1) {
+              _currentIndex++;
+            } else {
+              _currentIndex = 0;
+            }
+          });
+            
+
+            _pageController.animateToPage(
+              _currentIndex,
+              duration: Duration(milliseconds: 2500),
+              curve: Curves.easeInOut,
+            );
+          });
+        }
+
+         @override
           void dispose() {
-            _timer.cancel(); // Cancel the timer when the widget is disposed
+            // Cancel both timers when the widget is disposed
+            _flashSaleTimer.cancel();
+            _pageTransitionTimer.cancel();
             super.dispose();
           }
 
-          // Method to update location when user selects on map
-          void _onMapTapped(LatLng location) {
-            setState(() {
-              _selectedLocation = location;
-              _markers.clear(); // Clear previous markers
-              _markers.add(Marker(
-                markerId: MarkerId('selectedLocation'),
-                position: _selectedLocation,
-                infoWindow: InfoWindow(title: 'Selected Location'),
-              ));
-            });
+        // Format time in HH:mm:ss format
+        String _formatTime(Duration duration) {
+          String twoDigits(int n) => n.toString().padLeft(2, '0');
+          final hours = twoDigits(duration.inHours);
+          final minutes = twoDigits(duration.inMinutes.remainder(60));
+          final seconds = twoDigits(duration.inSeconds.remainder(60));
+          return '$hours:$minutes:$seconds';
+        }
 
-            // Close the map dialog after selecting a location
-            Navigator.of(context).pop();
-          }
+        // Method to update location when user selects on map
+        void _onMapTapped(LatLng location) {
+          setState(() {
+            _selectedLocation = location;
+            _markers.clear(); // Clear previous markers
+            _markers.add(Marker(
+              markerId: MarkerId('selectedLocation'),
+              position: _selectedLocation,
+              infoWindow: InfoWindow(title: 'Selected Location'),
+            ));
+          });
 
-          void _onFilterSelected(String filter) {
-            setState(() {
-              _selectedFilter = filter;
-            });
-          }
+          // Close the map dialog after selecting a location
+          Navigator.of(context).pop();
+        }
+
+        void _onFilterSelected(String filter) {
+          setState(() {
+            _selectedFilter = filter;
+          });
+        }
+
+
+        // Method to handle toggling likes for a product
+        void _toggleLike(int index) {
+          setState(() {
+            likeCounts[index] = likeCounts[index] == 0 ? 1 : 0;  // Toggle between 0 and 1
+          });
+        }
 
 
         @override
@@ -360,96 +396,114 @@
               ],
             );
           }
-            Widget _buildFlashSaleSection() {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Flash Sale", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-                      Text("Closing in: 02 : 12 : 56", style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 5, 14, 61))),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                ],
-              );
-            }
+              // Flash Sale section with countdown timer
+              Widget _buildFlashSaleSection() { 
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Flash Sale", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                        Text("Closing in: ${_formatTime(_remainingTime)}", style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 5, 14, 61))),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                  ],
+                );
+              }
 
 
-          Widget _buildFilterRow() {
-            final filters = ["All", "Newest", "Popular", "Man", "Women"];
-            return Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+         Widget _buildFilterRow() {
+        final filters = ["All", "Food", "Drink", "Dessert"];  // Modified filters
+        return Container(
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+            child: Row(
+              children: filters.map((filter) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12), // Add more space between filters
+                  child: GestureDetector(
+                    onTap: () => _onFilterSelected(filter),
+                    child: _buildFilter(filter, isActive: _selectedFilter == filter),
                   ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-                child: Row(
-                  children: filters.map((filter) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12), // Add more space between filters
-                      child: GestureDetector(
-                        onTap: () => _onFilterSelected(filter),
-                        child: _buildFilter(filter, isActive: _selectedFilter == filter),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            );
-          }
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      }
+
+
 
           Widget _buildProductGrid() {
-            // List of product details with title, price, and image
-            final products = [
-              {"title": "Coconut Water", "price": "\$5.99", "image": "images/Coconut Water.jpg"},
-              {"title": "Gaeng Som", "price": "\$12.99", "image": "images/Gaeng Som.jpg"},
-              {"title": "Khanom Jeen Nam Ya", "price": "\$49.99", "image": "images/Khanom Jeen Nam Ya.jpg"},
-              {"title": "Khao", "price": "\$29.99", "image": "images/khao.jpeg"},
-              {"title": "Larb", "price": "\$39.99", "image": "images/Larb.jpg"},
-              {"title": "Lod Chong", "price": "\$7.99", "image": "images/Lod Chong.jpg"},
-              {"title": "Mango Sticky Rice", "price": "\$9.99", "image": "images/Mango Sticky Rice.jpg"},
-              {"title": "P Aor", "price": "\$11.99", "image": "images/P Aor.jpg"},
-              {"title": "Pad", "price": "\$14.99", "image": "images/pad.jpeg"},
-              {"title": "Pranakorn", "price": "\$16.99", "image": "images/Pranakorn .jpg"},
-              {"title": "Savoey", "price": "\$13.99", "image": "images/Savoey.jpg"},
-              {"title": "Soi", "price": "\$8.99", "image": "images/soi.jpeg"},
-              {"title": "Somtam", "price": "\$7.99", "image": "images/somtam.jpeg"},
-              {"title": "Tako", "price": "\$5.99", "image": "images/Tako.jpg"},
-              {"title": "Tamarind Juice", "price": "\$3.99", "image": "images/Tamarind Juice.jpg"},
-              {"title": "Thai", "price": "\$12.99", "image": "images/thai.jpeg"},
-              {"title": "Tom Kha Kai", "price": "\$15.99", "image": "images/Tom Kha Kai.jpg"},
-              {"title": "Yam Nua", "price": "\$17.99", "image": "images/Yam Nua.jpg"},
-            ];
+          // List of product details with title, price, image, and category
+          final products = [
+            {"title": "Coconut Water", "price": "\$5.99", "image": "images/Coconut Water.jpg", "category": "Drink"},
+            {"title": "Gaeng Som", "price": "\$12.99", "image": "images/Gaeng Som.jpg", "category": "Food"},
+            {"title": "Khanom Jeen Nam Ya", "price": "\$49.99", "image": "images/Khanom Jeen Nam Ya.jpg", "category": "Food"},
+            {"title": "Khao", "price": "\$29.99", "image": "images/khao.jpeg", "category": "Food"},
+            {"title": "Larb", "price": "\$39.99", "image": "images/Larb.jpg", "category": "Food"},
+            {"title": "Lod Chong", "price": "\$7.99", "image": "images/Lod Chong.jpg", "category": "Dessert"},
+            {"title": "Mango Sticky Rice", "price": "\$9.99", "image": "images/Mango Sticky Rice.jpg", "category": "Dessert"},
+            {"title": "P Aor", "price": "\$11.99", "image": "images/P Aor.jpg", "category": "Food"},
+            {"title": "Pad", "price": "\$14.99", "image": "images/pad.jpeg", "category": "Food"},
+            {"title": "Pranakorn", "price": "\$16.99", "image": "images/Pranakorn .jpg", "category": "Food"},
+            {"title": "Savoey", "price": "\$13.99", "image": "images/Savoey.jpg", "category": "Food"},
+            {"title": "Soi", "price": "\$8.99", "image": "images/soi.jpeg", "category": "Food"},
+            {"title": "Somtam", "price": "\$7.99", "image": "images/somtam.jpeg", "category": "Food"},
+            {"title": "Tako", "price": "\$5.99", "image": "images/Tako.jpg", "category": "Dessert"},
+            {"title": "Tamarind Juice", "price": "\$3.99", "image": "images/Tamarind Juice.jpg", "category": "Drink"},
+            {"title": "Thai", "price": "\$12.99", "image": "images/thai.jpeg", "category": "Drink"},
+            {"title": "Tom Kha Kai", "price": "\$15.99", "image": "images/Tom Kha Kai.jpg", "category": "Food"},
+            {"title": "Yam Nua", "price": "\$17.99", "image": "images/Yam Nua.jpg", "category": "Food"},
+          ];
 
-            return GridView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12, // Increased space between grid items
-                mainAxisSpacing: 12, // Increased space between grid items
-                childAspectRatio: 0.75,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return _buildProductCard(product["title"]!, product["price"]!, product["image"]!);
-              },
-            );
+          // Filter products based on the selected filter
+          List<Map<String, String>> filteredProducts = [];
+          if (_selectedFilter == "All") {
+            filteredProducts = products; // Show all products if "All" is selected
+          } else {
+            filteredProducts = products.where((product) => product["category"] == _selectedFilter).toList();
           }
 
-          Widget _buildProductCard(String title, String price, String imageUrl) {
+          return GridView.builder(
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12, // Increased space between grid items
+              mainAxisSpacing: 12, // Increased space between grid items
+              childAspectRatio: 0.75,
+            ),
+            itemCount: filteredProducts.length,
+            itemBuilder: (context, index) {
+              final product = filteredProducts[index];
+              return _buildProductCard(
+                product["title"]!, 
+                product["price"]!, 
+                product["image"]!, 
+                likes: likeCounts[index], 
+                onLikeTapped: () => _toggleLike(index)
+              );
+            },
+          );
+        }
+
+
+          Widget _buildProductCard(String title, String price, String imageUrl, {int likes = 0, required VoidCallback onLikeTapped}) {
             return Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -468,11 +522,27 @@
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        imageUrl,
-                        width: double.infinity,
-                        height: 120,
-                        fit: BoxFit.cover,
+                      Stack(
+                        children: [
+                          Image.asset(
+                            imageUrl,
+                            width: double.infinity,
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: onLikeTapped,
+                              child: Icon(
+                                likes == 0 ? Icons.favorite_border : Icons.favorite, // Change icon based on like state
+                                color: Colors.red,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 10),
                       Text(
@@ -489,29 +559,51 @@
                   Positioned(
                     bottom: 10,
                     right: 10,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,  // Align text and button to opposite sides
+                      children: [
+                        Row(
+                          children: [
+                            // Shift like count to the left by adding padding or adjusting alignment
+                            Padding(
+                              padding: EdgeInsets.only(left: 10 , right: 35), // Adjust this value to fine-tune the position
+                              child: Text(
+                                '$likes', // Display the number of likes
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: Text(
-                          "Shop Now",
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.white, // Set the text color
-                            fontWeight: FontWeight.bold,
+                        ElevatedButton(
+                          onPressed: () {
+                            // Add logic for shopping action here
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 5, 14, 61),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            "Shop Now",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-
+                      ],
                     ),
                   ),
                 ],
               ),
             );
           }
+
+
+
+
 
 
           Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
