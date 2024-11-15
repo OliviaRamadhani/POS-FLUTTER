@@ -3,7 +3,7 @@ import 'package:pos2_flutter/pages/bottomnav.dart';
 import 'package:pos2_flutter/pages/home.dart';
 import 'package:pos2_flutter/pages/login.dart';
 import 'package:pos2_flutter/pages/onboarding.dart';
-import 'package:pos2_flutter/pages/product_detail.dart';
+import 'package:pos2_flutter/pages/ProductDetail.dart';
 
 void main() {
   runApp(const MyApp());
