@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:pos2_flutter/pages/CartScreen.dart';
-import 'package:pos2_flutter/pages/ProductDetail.dart';
+import 'package:pos2_flutter/screens/CartScreen.dart';
+import 'package:pos2_flutter/screens/ProductDetail.dart';
 
 class Order extends StatefulWidget {
   const Order({super.key});

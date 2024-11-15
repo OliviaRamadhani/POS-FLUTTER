@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/widget/support_widget.dart';
+import 'package:pos2_flutter/widgets/support_widget.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});

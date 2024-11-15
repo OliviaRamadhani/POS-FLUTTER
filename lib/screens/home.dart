@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/widget/support_widget.dart';
+import 'package:pos2_flutter/screens/inventori/produk/index.dart';
+import 'package:pos2_flutter/widgets/support_widget.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -18,14 +19,115 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff2f2f2),
+      backgroundColor: Color(0xfff2f2f2),
+      drawer: Drawer(  // Menambahkan drawer di sini
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.asset("images/siam1.png", height: 80, width: 80, fit: BoxFit.cover),
+                  ),
+                  SizedBox(height: 10),
+                  Text("Siam Spice Co.", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            ListTile(
+              title: Text('Home'),
+              leading: Icon(Icons.house_outlined),
+              onTap: () {
+                // Aksi saat menu Home dipilih
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => Home()), 
+                );
+              },
+            ),
+             ExpansionTile(
+              title: Text('Inventori'),
+              leading: Icon(Icons.inventory_2_outlined),
+              children: <Widget>[
+                ListTile(
+                  title: Text('       Produk'),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => InventoryPage()), // Ganti dengan halaman produk
+                    );
+                  },
+                ),
+              ], 
+             ),
+            ListTile(
+              title: Text('Settings'),
+              leading: Icon(Icons.settings_outlined),
+              onTap: () {
+                // Aksi saat menu Settings dipilih
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => Home()), 
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      appBar: AppBar(
+        backgroundColor: Color(0xfff2f2f2),
+        leading: 
+          Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer(); // Membuka drawer saat tombol di AppBar ditekan
+              },
+            ),
+          ),
+      ),
       body: SingleChildScrollView(
-        child: Container(
-          margin: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section
+      child: Container(
+        margin: EdgeInsets.only(top: 0.0, left: 20.0, right: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Welcome In\nSiam Spice Co.", 
+                  style: AppWidget.boldTextFeildStyle(),
+                    ),
+                    Text("Good Morning Everyone", 
+                    style: AppWidget.LightTextFieldStyle(),
+            ),
+              ],
+            ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20), 
+                  child: Image.asset("images/siam1.png", height: 60, width: 60, fit: BoxFit.cover,)),
+          ],
+        ),
+          SizedBox(height: 30.0,),
+            Container(
+
+              decoration: BoxDecoration(color: Colors.white, borderRadius:BorderRadius.circular(10)),
+              width: MediaQuery.of(context).size.width,
+              child: TextField(
+                decoration: InputDecoration(border: InputBorder.none, hintText: "Search Products", hintStyle: AppWidget.LightTextFieldStyle(), prefixIcon: Icon(Icons.search, color: Colors.black,)),
+              ),),
+              SizedBox(
+                height: 50.0,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -42,42 +144,46 @@ class _HomeState extends State<Home> {
                       ),
                     ],
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      "images/siam1.png",
-                      height: 60,
-                      width: 60,
-                      fit: BoxFit.cover,
-                    ),
+                  Text("See All For Dish & Drink", 
+                  style: TextStyle(color: Color.fromRGBO(18, 51, 82, 1), fontSize: 18.0, fontWeight: FontWeight.bold)
                   ),
                 ],
               ),
-              const SizedBox(height: 30.0),
-
-              // Search Bar
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                width: MediaQuery.of(context).size.width,
-                child: TextField(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "Search Products",
-                    hintStyle: AppWidget.LightTextFieldStyle(),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 50.0),
-
-              // Categories
-              Row(
+      SizedBox(height: 20.0,),
+      Row(
+        children: [
+            Container(
+              height: 130,
+        padding: EdgeInsets.all(30),
+        margin: EdgeInsets.only(right: 20.0),
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(18, 51, 82, 1),
+           borderRadius: BorderRadius.circular(10)
+        ),
+        child: Center(child: Text("All" , 
+        style: TextStyle(
+          color: const Color.fromARGB(255, 255, 255, 255) , 
+          fontSize: 20.0, 
+          fontWeight: FontWeight.bold),))
+        
+        ),
+          Expanded(
+            child: Container(
+              height: 130,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: categories.length,
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index){
+                  return CategoryTile(image: categories[index]);
+                }),
+            ),
+          ),
+        ],
+      ),
+      SizedBox(height: 20.0,),
+      Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
@@ -222,7 +328,7 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-    );
+      );
   }
 }
 
