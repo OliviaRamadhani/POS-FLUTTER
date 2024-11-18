@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/widget/support_widget.dart';
+import 'order_history.dart'; // Add this line if the page is in a separate file
+import 'my_address_page.dart'; // Import the MyAddressPage
+import 'settings_page.dart'; // Import SettingsPage
+import 'account_page.dart';   // Import AccountPage
+import 'payment_methods_page.dart'; // Import PaymentMethodsPage
+
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -9,315 +14,376 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  String? image = "images/siam1.png"; // Contoh gambar profil
-  String? name = "Users"; // Nama pengguna
-  String? email = "siamspice@gmail.com"; // Email pengguna
-  String? phone = "081332846699"; // Nomor Telepon
-  String? birthdate = "01 Januari 1990"; // Tanggal Lahir
-  String? accountStatus = "Premium"; // Status akun
-  
+  String? image = "images/siam1.png";
+  String? name = "Miranda West";
+  String? quote = "Enjoy the taste of Thailand at its finest.";
+  bool isPremium = true;
+  String _address = "123 Thai Street, Bangkok"; // Default address
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xfff2f2f2),
-        title: Center(
-          child: Text(
-            "Profile",
-            style: AppWidget.boldTextFeildStyle(),
-          ),
+      backgroundColor: Colors.grey[100],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 20),
+            _buildUserInfo(),
+            const SizedBox(height: 20),
+            _buildProfileOptions(context),
+            const SizedBox(height: 20),
+            _buildLogoutButton(),
+            const SizedBox(height: 20),
+          ],
         ),
-        automaticallyImplyLeading: false, // Optional: If you want to remove the back button
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings, color: Colors.black),  // Icon pengaturan
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Stack(
+      children: [
+        Image.asset(
+          "images/bgfp.png", // Background image path
+          height: 300,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+        Positioned(
+          top: 40,
+          right: 20,
+          child: IconButton(
+            icon: Icon(Icons.settings_outlined, color: Colors.white),
             onPressed: () {
-              // Tampilkan menu untuk logout atau hapus akun
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('More Settings'),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        ListTile(
-                          leading: Icon(Icons.exit_to_app),
-                          title: Text("Logout"),
-                          onTap: () {
-                            // Logic logout
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Logout berhasil!'),
-                              backgroundColor: Colors.green,
-                            ));
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.delete),
-                          title: Text("Hapus Akun"),
-                          onTap: () {
-                            // Logic hapus akun
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Konfirmasi'),
-                                  content: Text('Apakah Anda yakin ingin menghapus akun?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('Batal'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                          content: Text('Akun berhasil dihapus!'),
-                                          backgroundColor: Colors.red,
-                                        ));
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('Hapus'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
+              // Navigate to settings
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()),
               );
             },
           ),
-        ],
-      ),
-      backgroundColor: Color(0xfff2f2f2),
-      body: SingleChildScrollView(  // Membuat konten scrollable
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+        ),
+        Positioned(
+          top: 40,
+          left: 20,
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        Positioned(
+          bottom: 40,
+          left: 0,
+          right: 0,
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            child: CircleAvatar(
+              radius: 80,
+              backgroundImage: AssetImage(image!),
+              backgroundColor: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserInfo() {
+    return Column(
+      children: [
+        Text(
+          name!,
+          style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Colors.black, // Font color black
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          quote!,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 10),
+        isPremium
+            ? Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.amber[700],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.star, color: Colors.white, size: 16),
+                    const SizedBox(width: 5),
+                    Text(
+                      "Premium Member",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : SizedBox.shrink(),
+      ],
+    );
+  }
+
+  Widget _buildProfileOptions(BuildContext context) {
+    return Column(
+      children: [
+        _buildProfileOption(
+            icon: Icons.location_on_outlined,
+            text: "My Address",
+            onTap: () async {
+              // Navigate to Address Page and wait for the updated address
+              final updatedAddress = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyAddressPage()),
+              );
+
+              // If an updated address is returned, update the profile address
+              if (updatedAddress != null) {
+                setState(() {
+                  _address = updatedAddress;
+                });
+              }
+            }),
+        _buildProfileOption(
+            icon: Icons.person_outline,
+            text: "Account",
+            onTap: () {
+              // Navigate to Account Page to edit profile data
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AccountPage()),
+              );
+            }),
+        _buildProfileOption(
+            icon: Icons.notifications_outlined,
+            text: "Notifications",
+            onTap: () {
+              // Show notifications settings as a floating modal
+              _showNotificationsDialog(context);
+            }),
+        _buildProfileOption(
+            icon: Icons.payment_outlined,
+            text: "Payment Methods",
+            onTap: () {
+              // Navigate to Payment Methods Page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PaymentMethodsPage()),
+              );
+            }),
+        _buildProfileOption(
+            icon: Icons.language_outlined,
+            text: "Language",
+            onTap: () {
+              // Show language settings as a floating modal
+              _showLanguageDialog(context);
+            }),
+        _buildProfileOption(
+            icon: Icons.history_outlined,
+            text: "Order History",
+            onTap: () {
+              // Navigate to Order History Page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OrderHistory()),
+              );
+            }),
+      ],
+    );
+  }
+
+  Widget _buildProfileOption({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
               children: [
-                // Profil Picture
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(60),
-                  child: Image.asset(
-                    image!,
-                    height: 150.0,
-                    width: 150.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Name
-                Card(
-                  elevation: 5,
-                  shadowColor: Colors.black45,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      gradient: LinearGradient(
-                        colors: [Colors.purple, Colors.deepPurpleAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.person, color: Colors.white, size: 28),  // Add icon
-                            SizedBox(width: 10),
-                            Text(
-                              name!,
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Email
-                Card(
-                  elevation: 5,
-                  shadowColor: Colors.black45,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      gradient: LinearGradient(
-                        colors: [Colors.purple, Colors.deepPurpleAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.email, color: Colors.white, size: 28),
-                            SizedBox(width: 10),
-                            Text(
-                              email!,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Phone Number
-                Card(
-                  elevation: 5,
-                  shadowColor: Colors.black45,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      gradient: LinearGradient(
-                        colors: [Colors.purple, Colors.deepPurpleAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.phone, color: Colors.white, size: 28),
-                            SizedBox(width: 10),
-                            Text(
-                              phone!,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Checkout History
-                  Card(
-                    elevation: 5,
-                    shadowColor: Colors.black45,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        gradient: LinearGradient(
-                          colors: [Colors.purple, Colors.deepPurpleAccent],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.history, color: Colors.white, size: 20), // Ikon riwayat
-                              SizedBox(width: 10),
-                              Text(
-                                "Riwayat Checkout", // Teks Riwayat Checkout
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                SizedBox(height: 20),
-
-                // Additional Settings Menu with Background
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurpleAccent.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ListTile(
-                        leading: Icon(Icons.help, color: Colors.deepPurpleAccent),
-                        title: Text('Pusat Bantuan'),
-                        onTap: () {
-                          // Action for Pusat Bantuan
-                        },
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.description, color: Colors.deepPurpleAccent),
-                        title: Text('Syarat & Ketentuan'),
-                        onTap: () {
-                          // Action for Syarat & Ketentuan
-                        },
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.payment, color: Colors.deepPurpleAccent),
-                        title: Text('SmartPay'),
-                        onTap: () {
-                          // Action for SmartPay
-                        },
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.notifications, color: Colors.deepPurpleAccent),
-                        title: Text('Pengaturan Notifikasi'),
-                        onTap: () {
-                          // Action for Pengaturan Notifikasi
-                        },
-                      ),
-                    ],
+                Icon(icon, color: Colors.black),
+                const SizedBox(width: 20),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
                 ),
               ],
             ),
+            Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return GestureDetector(
+      onTap: () {
+        // Logout action
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Logout'),
+              content: Text('Are you sure you want to logout?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Add logout action here
+                  },
+                  child: Text('Logout'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.redAccent.withOpacity(0.3),
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            "Logout",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  // Show Notifications Settings as a Floating Dialog
+  void _showNotificationsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Notifications Settings",
+                    style:
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                SizedBox(height: 20),
+                ListTile(
+                  title: Text("Enable Notifications"),
+                  trailing: Switch(value: true, onChanged: (value) {}),
+                ),
+                ListTile(
+                  title: Text("Push Notifications"),
+                  trailing: Switch(value: true, onChanged: (value) {}),
+                ),
+                ListTile(
+                  title: Text("Email Notifications"),
+                  trailing: Switch(value: false, onChanged: (value) {}),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Show Language Settings as a Floating Dialog
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Language Settings",
+                    style:
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                SizedBox(height: 20),
+                ListTile(
+                  title: Text("English"),
+                  trailing: Radio(value: 1, groupValue: 1, onChanged: (value) {}),
+                ),
+                ListTile(
+                  title: Text("Thai"),
+                  trailing: Radio(value: 2, groupValue: 1, onChanged: (value) {}),
+                ),
+                ListTile(
+                  title: Text("Spanish"),
+                  trailing: Radio(value: 3, groupValue: 1, onChanged: (value) {}),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

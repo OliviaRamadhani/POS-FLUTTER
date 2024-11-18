@@ -85,13 +85,13 @@ class _SignInScreenState extends State<SignInScreen> {
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
@@ -118,13 +118,13 @@ class _SignInScreenState extends State<SignInScreen> {
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),

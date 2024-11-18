@@ -26,8 +26,8 @@ class WelcomeScreen extends StatelessWidget {
                     children: [
                       Image.asset(
                         "images/sss1.png",
-                        width: 300, // Adjust width as needed
-                        height: 300, // Adjust height as needed
+                        width: 250, // Adjust width as needed
+                        height: 250, // Adjust height as needed
                         fit: BoxFit.cover,
                       ),
                       const SizedBox(height: 20),
@@ -38,19 +38,23 @@ class WelcomeScreen extends StatelessWidget {
                             TextSpan(
                               text: 'Experience Thai Bliss!\n',
                               style: TextStyle(
-                                fontSize: 30.0,
-                                fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 3, 8,
-                                    36), // White text for contrast on dark background
+                                fontFamily:
+                                    'Kanit', // Custom Thai-inspired font
+                                fontSize: 28.0,
+                                fontWeight: FontWeight.w900,
+                                color:
+                                    Color.fromARGB(255, 3, 8, 36), // Dark text
                               ),
                             ),
                             TextSpan(
                               text:
                                   '\nJoin us for a delightful dining experience with authentic flavors. Discover the rich culinary heritage of Thailand, crafted with love and tradition.',
                               style: TextStyle(
+                                fontFamily:
+                                    'Kanit', // Custom Thai-inspired font
                                 fontSize: 14,
-                                color: Color.fromARGB(255, 1, 10,
-                                    32), // White text for readability
+                                color:
+                                    Color.fromARGB(255, 1, 10, 32), // Dark text
                               ),
                             ),
                           ],
@@ -63,26 +67,30 @@ class WelcomeScreen extends StatelessWidget {
             ),
             Flexible(
               flex: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Expanded(
-                    child: WelcomeButton(
-                      buttonText: 'Sign in',
-                      onTap: SignInScreen(),
-                      color: Colors.transparent,
-                      textColor: Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    top: 20.0), // Adjust top padding to move up
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Expanded(
+                      child: WelcomeButton(
+                        buttonText: 'Sign in',
+                        onTap: SignInScreen(),
+                        color: Colors.transparent,
+                        textColor: Color.fromARGB(255, 3, 21, 59),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: WelcomeButton(
-                      buttonText: 'Sign up',
-                      onTap: const SignUpScreen(),
-                      color: Colors.transparent,
-                      textColor: Colors.white,
+                    Expanded(
+                      child: WelcomeButton(
+                        buttonText: 'Sign up',
+                        onTap: const SignUpScreen(),
+                        color: Color.fromARGB(206, 12, 5, 37),
+                        textColor: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
