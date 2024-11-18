@@ -135,6 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
       debugShowCheckedModeBanner: false, // Menghilangkan banner debug
       title: 'Flutter Demo', // Judul aplikasi
       theme: lightMode, // Tema yang digunakan untuk aplikasi, pastikan lightMode sudah didefinisikan

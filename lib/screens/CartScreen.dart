@@ -3,13 +3,20 @@ import 'package:flutter/material.dart';
 class CartScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cart;
 
-  const CartScreen({Key? key, required this.cart, required Null Function(int index, int change) updateQuantity, required Null Function(int index) removeItem}) : super(key: key);
+  const CartScreen({
+    Key? key,
+    required this.cart,
+    required Null Function(int index, int change) updateQuantity,
+    required Null Function(int index) removeItem,
+  }) : super(key: key);
 
   @override
   _CartScreenState createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
+  final TextEditingController _nameController = TextEditingController(); // Controller for name input
+
   void updateQuantity(int index, int change) {
     setState(() {
       widget.cart[index]['quantity'] += change;
@@ -18,12 +25,12 @@ class _CartScreenState extends State<CartScreen> {
 
   void removeItem(int index) {
     setState(() {
-      widget.cart.removeAt(index); // Menghapus item dari cart
+      widget.cart.removeAt(index); // Remove item from cart
     });
   }
 
   String formatCurrency(double amount) {
-    return "Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.")}";
+    return "Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.")}"; 
   }
 
   double calculateTotal() {
@@ -31,11 +38,20 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   void checkout(BuildContext context) {
+    final name = _nameController.text.trim();
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter your name before proceeding.')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Checkout'),
-        content: const Text('Thank you for your purchase!'),
+        content: Text('Thank you for your purchase, $name!'), // Display customer's name
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -53,7 +69,7 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cart'),
-        backgroundColor: Colors.orangeAccent,
+        backgroundColor: Color.fromARGB(255, 5, 14, 61),
       ),
       body: widget.cart.isEmpty
           ? const Center(child: Text('Your cart is empty.'))
@@ -121,6 +137,16 @@ class _CartScreenState extends State<CartScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Name field for the customer
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Your Name',
+                      hintText: 'Enter your name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Total: ${formatCurrency(total)}',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -129,7 +155,7 @@ class _CartScreenState extends State<CartScreen> {
                   ElevatedButton(
                     onPressed: () => checkout(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orangeAccent,
+                      backgroundColor: Color.fromARGB(255, 5, 14, 61),
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
                     child: const Text('Proceed to Checkout'),

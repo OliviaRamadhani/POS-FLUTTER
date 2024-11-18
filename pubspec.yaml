@@ -34,6 +34,8 @@ dependencies:
   provider: ^6.0.0
   http: ^1.2.2
   google_maps_flutter: ^2.2.0
+  flutter_webview_plugin: ^0.4.0
+  midtrans_sdk: ^0.4.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -44,6 +46,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+    
 
 
   # The "flutter_lints" package below contains a set of recommended lints to

@@ -8,10 +8,10 @@ class Order extends StatefulWidget {
   const Order({super.key});
 
   @override
-  State<Order> createState() => _OrderState();
+  State<Order> createState() => OrderState();
 }
 
-class _OrderState extends State<Order> {
+class OrderState extends State<Order> {
   final String apiUrl = "http://192.168.2.139:8000/api/inventori/produk";
   List<Map<String, dynamic>> cart = [];
   List<Map<String, dynamic>> menuItems = [];
@@ -33,9 +33,7 @@ class _OrderState extends State<Order> {
           return {
             "name": item["name"],
             "description": item["description"] ?? '',
-            // Ensure price is converted to double
             "price": (item["price"] is int) ? (item["price"] as int).toDouble() : item["price"],
-            // Ensure originalPrice is also converted to double if it exists
             "originalPrice": item["original_price"] != null
                 ? (item["original_price"] is int ? (item["original_price"] as int).toDouble() : item["original_price"])
                 : null,
@@ -126,39 +124,52 @@ class _OrderState extends State<Order> {
   }
 
   // Category Buttons / Chips
-  Widget categoryFilter() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: categories.map((category) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: ChoiceChip(
-                label: Text(category),
-                selected: selectedCategory == category,
-                onSelected: (selected) {
-                  setState(() {
-                    selectedCategory = selected ? category : 'All';
-                  });
-                },
-                selectedColor: Colors.orangeAccent,
-                backgroundColor: Colors.grey[300],
+ Widget categoryFilter() {
+  return Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: categories.map((category) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: ChoiceChip(
+              label: Text(
+                category,
+                style: TextStyle(
+                  color: selectedCategory == category
+                      ? Colors.white // Warna putih jika dipilih
+                      : Colors.black, // Warna default jika tidak dipilih
+                ),
               ),
-            );
-          }).toList(),
-        ),
+              selected: selectedCategory == category,
+              onSelected: (selected) {
+                setState(() {
+                  selectedCategory = selected ? category : 'All';
+                });
+              },
+              selectedColor:  Color.fromARGB(255, 5, 14, 61), // Latar belakang saat dipilih
+              backgroundColor: Colors.grey[300], // Latar belakang default
+              checkmarkColor: Colors.white, // Warna centang
+            ),
+          );
+        }).toList(),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Menu'),
-        backgroundColor: Colors.orangeAccent,
+        title: const Text(
+          'Menu',
+          style: TextStyle(color: Colors.white), // Ubah warna teks menjadi putih
+        ),
+        backgroundColor: Color.fromARGB(255, 5, 14, 61),
+        iconTheme: const IconThemeData(color: Colors.white), // Ubah warna ikon menjadi putih
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
@@ -172,7 +183,7 @@ class _OrderState extends State<Order> {
           categoryFilter(),
 
           // Fetch and display products based on selected category
-          FutureBuilder<List<Map<String, dynamic>>>( 
+          FutureBuilder<List<Map<String, dynamic>>>(
             future: fetchMenu(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -276,4 +287,3 @@ class _OrderState extends State<Order> {
     );
   }
 }
-  
