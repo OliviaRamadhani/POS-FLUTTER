@@ -68,7 +68,12 @@ class _CartScreenState extends State<CartScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cart'),
+        title: const Text(
+          'Cart',
+          style: TextStyle(
+            color: Colors.white, // Ubah warna teks menjadi putih
+          ),
+        ),
         backgroundColor: Color.fromARGB(255, 5, 14, 61),
       ),
       body: widget.cart.isEmpty
