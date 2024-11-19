@@ -1,13 +1,16 @@
-      import 'package:flutter/material.dart';
-      import 'package:google_maps_flutter/google_maps_flutter.dart';
-      import 'package:pos2_flutter/screens/inventori/produk/index.dart';
-      import 'package:pos2_flutter/screens/signin_screen.dart';
-      import 'package:pos2_flutter/widgets/support_widget.dart';
-      import 'dart:async'; // Import for Timer
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pos2_flutter/screens/inventori/produk/index.dart';
+import 'package:pos2_flutter/screens/profile.dart';
+import 'package:pos2_flutter/screens/signin_screen.dart';
+import 'package:pos2_flutter/widgets/support_widget.dart';
+import 'package:pos2_flutter/services/auth_api.dart';
+import 'package:pos2_flutter/models/user_model.dart';
+import 'dart:async'; // Import for Timer
 
-      void main() {
-        runApp(MyApp());
-      }
+final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
+
+
       
         class MyApp extends StatelessWidget {
           @override
@@ -18,6 +21,124 @@
             );
           }
         }
+
+     class MyDrawer extends StatefulWidget {
+      @override
+      _MyDrawerState createState() => _MyDrawerState();
+    }
+
+      class _MyDrawerState extends State<MyDrawer> {
+        User? user;
+        bool isLoading = true;
+
+        @override
+        void initState() {
+          super.initState();
+          _fetchUser();
+        }
+
+        Future<void> _fetchUser() async {
+          try {
+            // Panggil API untuk mendapatkan data user
+            User? fetchedUser = await _authApi.getUser();
+            setState(() {
+              user = fetchedUser;
+              isLoading = false;
+            });
+          } catch (e) {
+            setState(() {
+              isLoading = false;
+            });
+            // Tangani error jika perlu, misalnya tampilkan snackbar atau log error
+            print('Error fetching user: $e');
+          }
+        }
+
+        Future<void> logOut() async {
+          // Panggil fungsi logout dari AuthApi
+          await _authApi.logout();
+
+          // Navigasi kembali ke SignInScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => SignInScreen()),
+          );
+        }
+
+        @override
+        Widget build(BuildContext context) {
+          return Drawer(
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : ListView(
+                    padding: EdgeInsets.zero,
+                    children: <Widget>[
+                      DrawerHeader(
+                        decoration: BoxDecoration(
+                          color: Color.fromARGB(255, 5, 14, 61),
+                        ),
+                        child: Column(
+                          children: [
+                              // Arahkan ke halaman
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: user?.photo != null
+                                  ? Image.network(user!.photo!, height: 80, width: 80, fit: BoxFit.cover)
+                                  : Icon(Icons.person, size: 80, color: Colors.white), // Tampilkan icon jika tidak ada foto
+                            ),
+                            SizedBox(height: 10),
+                            Text(user?.name ?? 'Guest', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                            Text(user?.email ?? 'Please log in to access more features', style: TextStyle(color: Colors.white70)),
+                           
+                          ],
+                        ),
+                      ),
+                      ListTile(
+                        title: Text('Home'),
+                        leading: Icon(Icons.house_outlined),
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Home()), 
+                          );
+                        },
+                      ),
+                      ExpansionTile(
+                        title: Text('Inventori'),
+                        leading: Icon(Icons.inventory_2_outlined),
+                        children: <Widget>[
+                          ListTile(
+                            title: Text('Produk'),
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => InventoryPage()),
+                              );
+                            },
+                          ),
+                        ], 
+                      ),
+                      ListTile(
+                        title: Text('Settings'),
+                        leading: Icon(Icons.settings_outlined),
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Home()),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        title: Text('Log Out'),
+                        leading: Icon(Icons.logout_outlined),
+                        onTap: logOut,
+                      ),
+                    ],
+                  ),
+            );
+          }
+        }
+
 
         class Home extends StatefulWidget {
           @override
@@ -144,65 +265,8 @@
         Widget build(BuildContext context) {
           return Scaffold(
             backgroundColor: Color(0xFFF8F8F8),
-            drawer: Drawer(  // Menambahkan drawer di sini
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: <Widget>[
-                  DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 5, 14, 61),                    
-                    ),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.asset("images/siam1.png", height: 80, width: 80, fit: BoxFit.cover),
-                        ),
-                        SizedBox(height: 10),
-                        Text("Siam Spice Co.", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Home'),
-                    leading: Icon(Icons.house_outlined),
-                    onTap: () {
-                      // Aksi saat menu Home dipilih
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => Home()), 
-                      );
-                    },
-                  ),
-                  ExpansionTile(
-                    title: Text('Inventori'),
-                    leading: Icon(Icons.inventory_2_outlined),
-                    children: <Widget>[
-                      ListTile(
-                        title: Text('Produk'),
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => InventoryPage()), // Ganti dengan halaman produk
-                          );
-                        },
-                      ),
-                    ], 
-                  ),
-                  ListTile(
-                    title: Text('Settings'),
-                    leading: Icon(Icons.settings_outlined),
-                    onTap: () {
-                      // Aksi saat menu Settings dipilih
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => Home()), 
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+            drawer: MyDrawer(),
+            
             appBar: AppBar(
               backgroundColor: Color.fromARGB(255, 5, 14, 61),
               leading: Builder(

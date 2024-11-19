@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pos2_flutter/screens/welcome_screen.dart';
 import 'package:pos2_flutter/theme/theme.dart';
 import 'package:pos2_flutter/screens/bottomnav.dart';
-import 'package:pos2_flutter/screens/home.dart';
+import 'package:pos2_flutter/screens/home.dart'; 
 import 'package:pos2_flutter/screens/login.dart';
 import 'package:pos2_flutter/screens/onboarding.dart';
 import 'package:pos2_flutter/screens/product_detail.dart';
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: BottomNav()
+      home: WelcomeScreen()
     );
   }
 }

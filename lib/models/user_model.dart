@@ -21,6 +21,7 @@ class User {
     required this.role,
   });
 
+  // fromJson sudah ada
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
@@ -33,6 +34,21 @@ class User {
       permission: List<String>.from(json['permission']),
       role: Role.fromJson(json['role']),
     );
+  }
+
+  // toJson untuk mengonversi objek User ke JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'uuid': uuid,
+      'name': name,
+      'address': address,
+      'email': email,
+      'phone': phone,
+      'photo': photo,
+      'permission': permission,
+      'role': role.toJson(),
+    };
   }
 }
 
@@ -47,11 +63,21 @@ class Role {
     required this.fullName,
   });
 
+  // fromJson sudah ada
   factory Role.fromJson(Map<String, dynamic> json) {
     return Role(
       id: json['id'],
       name: json['name'],
       fullName: json['full_name'],
     );
+  }
+
+  // toJson untuk mengonversi objek Role ke JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'full_name': fullName,
+    };
   }
 }
