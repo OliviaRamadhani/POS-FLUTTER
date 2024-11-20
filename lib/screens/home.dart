@@ -39,9 +39,9 @@
 
         final List<Map<String, String>> discountItems = [
           {
-            "title": "Seasonal Discount",
-            "discount": "Up to 50% off",
-            "imagePath": "images/bgg.png",
+            "title": "Discount of Today",
+            "discount": "Discount Up To 30%",
+            "imagePath": "images/thailand.png",
           },
           {
             "title": "Limited Time Offer",
@@ -351,9 +351,9 @@
                         itemBuilder: (context, index) {
                           final item = discountItems[index];
                           return _buildDiscountBanner(
-                            item["title"],    // No null operator (!) to allow fallback
-                            item["discount"], // No null operator (!) to allow fallback
-                            item["imagePath"], // No null operator (!) to allow fallback
+                            item["title"],
+                            item["discount"],
+                            item["imagePath"],
                           );
                         },
                         onPageChanged: (index) {
@@ -385,6 +385,7 @@
                 ),
               );
             }
+
 
            Widget _buildCategoryRow() {
             return Row(
@@ -606,26 +607,33 @@
 
 
 
-          Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Color(0xFFF3E7DC),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              children: [
-                Expanded(
+        Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
+          bool isFullImage = (title == null || title.isEmpty) && (discount == null || discount.isEmpty);
+
+          return Stack(
+            children: [
+              // Full image display
+              Positioned.fill(
+                child: Image.asset(
+                  imagePath ?? "images/default.png",
+                  fit: BoxFit.cover,
+                ),
+              ),
+              // Position title and discount text in the bottom-left corner
+              if (!isFullImage)
+                Positioned(
+                  bottom: 70,  // Positioned above the "Shop Now" button
+                  right: 10,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         title ?? "Default Title",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 5, 14, 61),
+                          color: Colors.white,
+                          shadows: [Shadow(blurRadius: 5, color: Colors.black)],
                         ),
                       ),
                       SizedBox(height: 5),
@@ -633,40 +641,39 @@
                         discount ?? "Default Discount",
                         style: TextStyle(
                           fontSize: 14,
-                          color: Color.fromARGB(255, 5, 14, 61),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          "Shop Now",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          color: Colors.white,
+                          shadows: [Shadow(blurRadius: 5, color: Colors.black)],
                         ),
                       ),
                     ],
                   ),
                 ),
-                Image.asset(
-                  imagePath ?? "images/default.png",
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.contain,
+              // Positioned "Shop Now" button in the bottom-right corner
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 5, 14, 61),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    "Shop Now",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         }
+
 
 
 
