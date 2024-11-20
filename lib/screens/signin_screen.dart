@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:pos2_flutter/screens/signup_screen.dart';
 import 'package:pos2_flutter/screens/forget_password_screen.dart'; // Import ForgetPasswordScreen
+import 'package:pos2_flutter/screens/bottomnav.dart';
 import '../theme/theme.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -18,21 +19,17 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Changed from CustomScaffold to Scaffold
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image:
-                AssetImage("images/bgsi.png"), // Path to your background image
-            fit: BoxFit
-                .cover, // This makes sure the image covers the entire container
+            image: AssetImage("images/bgsi.png"),
+            fit: BoxFit.cover,
           ),
         ),
         child: Column(
           children: [
-            // Display the image as the new "Welcome" section
             const Expanded(
               flex: 1,
               child: SizedBox(
@@ -56,13 +53,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Replace the 'Welcome' text with an image
                         Image.asset(
-                          "images/bgg.png", // Path to your image
-                          height: 200, // Adjust the height as needed
-                          width: 300, // Adjust the width as needed
-                          fit: BoxFit
-                              .cover, // Ensure the image fits inside the container
+                          "images/bgg.png",
+                          height: 200,
+                          width: 300,
+                          fit: BoxFit.cover,
                         ),
                         const SizedBox(
                           height: 5.0,
@@ -85,13 +80,13 @@ class _SignInScreenState extends State<SignInScreen> {
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
@@ -118,13 +113,13 @@ class _SignInScreenState extends State<SignInScreen> {
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
                                 color: Colors.black12,
                               ),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
@@ -182,9 +177,11 @@ class _SignInScreenState extends State<SignInScreen> {
                             onPressed: () {
                               if (_formSignInKey.currentState!.validate() &&
                                   rememberPassword) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Processing Data'),
+                                // Navigate to BottomNav after successful sign in
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const BottomNav(),
                                   ),
                                 );
                               } else if (!rememberPassword) {
