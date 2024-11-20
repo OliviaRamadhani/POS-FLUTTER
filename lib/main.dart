@@ -6,6 +6,8 @@ import 'package:pos2_flutter/screens/home.dart';
 import 'package:pos2_flutter/screens/login.dart';
 import 'package:pos2_flutter/screens/onboarding.dart';
 import 'package:pos2_flutter/screens/product_detail.dart';
+import 'package:pos2_flutter/screens/splash_screen.dart';
+
 
 
 void main() {
@@ -15,6 +17,7 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -39,7 +42,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: BottomNav()
+       home: const SplashScreen(), // Splash Screen sebagai halaman pertama
     );
   }
 }
@@ -134,6 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
       debugShowCheckedModeBanner: false, // Menghilangkan banner debug
       title: 'Flutter Demo', // Judul aplikasi
       theme: lightMode, // Tema yang digunakan untuk aplikasi, pastikan lightMode sudah didefinisikan
