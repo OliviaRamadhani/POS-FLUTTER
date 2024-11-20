@@ -601,11 +601,6 @@
             );
           }
 
-
-
-
-
-
           Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),

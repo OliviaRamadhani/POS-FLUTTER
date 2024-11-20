@@ -14,8 +14,12 @@ class ProductDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(product["name"]),
+        title: Text(
+          product["name"],
+          style: TextStyle(color: Colors.white), // Set the title text color to white
+        ),
         backgroundColor: Color.fromARGB(255, 5, 14, 61),
+        iconTheme: IconThemeData(color: Colors.white), // Set the back button icon color to white
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -35,7 +39,10 @@ class ProductDetailScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 product["name"],
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -72,6 +79,6 @@ class ProductDetailScreen extends StatelessWidget {
 
   // Function to format currency
   String formatCurrency(double amount) {
-    return "Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.")}";
+    return "Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.")}"; 
   }
 }
