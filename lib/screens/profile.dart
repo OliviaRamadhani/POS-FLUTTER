@@ -5,6 +5,7 @@ import 'settings_page.dart'; // Import SettingsPage
 import 'account_page.dart';   // Import AccountPage
 import 'payment_methods_page.dart'; // Import PaymentMethodsPage
 
+import 'package:pos2_flutter/widgets/support_widget.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});

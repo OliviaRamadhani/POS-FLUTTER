@@ -1,8 +1,8 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/pages/Order.dart';
-import 'package:pos2_flutter/pages/home.dart';
-import 'package:pos2_flutter/pages/profile.dart';
+import 'package:pos2_flutter/screens/menu.dart';
+import 'package:pos2_flutter/screens/home.dart';
+import 'package:pos2_flutter/screens/profile.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});

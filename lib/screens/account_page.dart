@@ -14,16 +14,17 @@ class _AccountPageState extends State<AccountPage> {
   final _passwordController = TextEditingController();
 
   // Placeholder data for initial fields
-  String _name = "Miranda West";
-  String _email = "miranda@example.com";
-  String _password = "********";
+  String _name = "";
+  String _email = "";
+  String _password = "";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Account", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.indigo[900], // Dark blue color
+        backgroundColor:
+            const Color.fromARGB(255, 18, 22, 66), // Dark blue color
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -72,7 +73,8 @@ class _AccountPageState extends State<AccountPage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo[900], // Dark blue color
+                backgroundColor:
+                    const Color.fromARGB(255, 255, 255, 255), // Dark blue color
                 padding: EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
