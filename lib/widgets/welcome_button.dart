@@ -20,12 +20,11 @@ class WelcomeButton extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(25.0),
+        padding: const EdgeInsets.all(28.0),
         decoration: BoxDecoration(
           color: color!,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(50),
-          ),
+              topLeft: Radius.circular(40), topRight: Radius.circular(0)),
         ),
         child: Text(
           buttonText!,
