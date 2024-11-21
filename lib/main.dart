@@ -5,7 +5,7 @@ import 'package:pos2_flutter/screens/bottomnav.dart';
 import 'package:pos2_flutter/screens/home.dart';
 import 'package:pos2_flutter/screens/login.dart';
 import 'package:pos2_flutter/screens/onboarding.dart';
-import 'package:pos2_flutter/screens/product_detail.dart';
+
 
 
 void main() {

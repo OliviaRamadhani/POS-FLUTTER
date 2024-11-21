@@ -2,21 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:pos2_flutter/screens/CartScreen.dart';
-import 'package:pos2_flutter/screens/ProductDetail.dart';
+import 'package:pos2_flutter/screens/ProductDetailSheet.dart';
 
 class Order extends StatefulWidget {
-  const Order({super.key});
-
   @override
-  State<Order> createState() => OrderState();
+  _OrderState createState() => _OrderState();
 }
 
-class OrderState extends State<Order> {
+class _OrderState extends State<Order> {
   final String apiUrl = "http://192.168.2.139:8000/api/inventori/produk";
-  List<Map<String, dynamic>> cart = [];
+  List<Map<String, dynamic>> cart = []; // Cart state
   List<Map<String, dynamic>> menuItems = [];
   List<String> categories = ['All']; // Default category list with 'All'
   String selectedCategory = 'All';
+  bool showFloatingCart = false; // For controlling the floating cart visibility
 
   // Function to format price to Rupiah without intl package
   String formatCurrency(double amount) {
@@ -70,6 +69,7 @@ class OrderState extends State<Order> {
       } else {
         cart.add({...item}); // Copy item to avoid reference issues
       }
+      showFloatingCart = true; // Show floating cart when item is added
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -77,41 +77,20 @@ class OrderState extends State<Order> {
     );
   }
 
-  // Go to Cart Page
-  void goToCart() {
-    if (cart.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Your cart is empty!")),
-      );
-      return;
-    }
+  // Update quantity of an item in the cart
+  void updateQuantity(int index, int change) {
+    setState(() {
+      cart[index]["quantity"] += change;
+      if (cart[index]["quantity"] <= 0) {
+        cart.removeAt(index);
+      }
+    });
+  }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CartScreen(
-          cart: cart,
-          updateQuantity: (int index, int change) {
-            setState(() {
-              if (cart.isNotEmpty && index >= 0 && index < cart.length) {
-                if (cart[index]["quantity"] + change > 0) {
-                  cart[index]["quantity"] += change;
-                } else {
-                  cart.removeAt(index); // Hapus item jika kuantitas menjadi 0
-                }
-              }
-            });
-          },
-          removeItem: (int index) {
-            setState(() {
-              if (cart.isNotEmpty && index >= 0 && index < cart.length) {
-                cart.removeAt(index); // Safe removal of item
-              }
-            });
-          },
-        ),
-      ),
-    );
+  void removeItem(int index) {
+    setState(() {
+      cart.removeAt(index);
+    });
   }
 
   // Filter items based on category
@@ -124,41 +103,60 @@ class OrderState extends State<Order> {
   }
 
   // Category Buttons / Chips
- Widget categoryFilter() {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: categories.map((category) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: ChoiceChip(
-              label: Text(
-                category,
-                style: TextStyle(
-                  color: selectedCategory == category
-                      ? Colors.white // Warna putih jika dipilih
-                      : Colors.black, // Warna default jika tidak dipilih
+  Widget categoryFilter() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: categories.map((category) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: ChoiceChip(
+                label: Text(
+                  category,
+                  style: TextStyle(
+                    color: selectedCategory == category
+                        ? Colors.white // Warna putih jika dipilih
+                        : Colors.black, // Warna default jika tidak dipilih
+                  ),
                 ),
+                selected: selectedCategory == category,
+                onSelected: (selected) {
+                  setState(() {
+                    selectedCategory = selected ? category : 'All';
+                  });
+                },
+                selectedColor: Color.fromARGB(255, 5, 14, 61), // Latar belakang saat dipilih
+                backgroundColor: Colors.grey[300], // Latar belakang default
+                checkmarkColor: Colors.white, // Warna centang
               ),
-              selected: selectedCategory == category,
-              onSelected: (selected) {
-                setState(() {
-                  selectedCategory = selected ? category : 'All';
-                });
-              },
-              selectedColor:  Color.fromARGB(255, 5, 14, 61), // Latar belakang saat dipilih
-              backgroundColor: Colors.grey[300], // Latar belakang default
-              checkmarkColor: Colors.white, // Warna centang
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // Navigate to CartScreen
+ void navigateToCart() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CartScreen(
+        cart: cart,
+        updateQuantity: updateQuantity,
+        removeItem: removeItem,
+        onCartUpdated: (updatedCart) {
+          // Tambahkan logika update cart jika diperlukan
+          setState(() {
+            cart = updatedCart;
+          });
+        },
       ),
     ),
   );
 }
-
 
   @override
   Widget build(BuildContext context) {
@@ -166,14 +164,23 @@ class OrderState extends State<Order> {
       appBar: AppBar(
         title: const Text(
           'Menu',
-          style: TextStyle(color: Colors.white), // Ubah warna teks menjadi putih
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Color.fromARGB(255, 5, 14, 61),
-        iconTheme: const IconThemeData(color: Colors.white), // Ubah warna ikon menjadi putih
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: goToCart,
+          // The floating cart icon
+          Visibility(
+            visible: showFloatingCart,
+            child: Positioned(
+              bottom: 10,
+              right: 10,
+              child: FloatingActionButton(
+                onPressed: navigateToCart,
+                backgroundColor: Colors.green,
+                child: Icon(Icons.shopping_cart),
+              ),
+            ),
           ),
         ],
       ),
@@ -183,7 +190,7 @@ class OrderState extends State<Order> {
           categoryFilter(),
 
           // Fetch and display products based on selected category
-          FutureBuilder<List<Map<String, dynamic>>>(
+          FutureBuilder<List<Map<String, dynamic>>>( 
             future: fetchMenu(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -201,13 +208,16 @@ class OrderState extends State<Order> {
                       final item = filteredItems[index];
                       return GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(
-                                product: item,
-                                onAddToCart: addToCart,
-                              ),
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+                            ),
+                            builder: (context) => ProductDetailSheet(
+                              product: item,
+                              onAddToCart: addToCart,
+                              formatCurrency: formatCurrency, // Pass formatCurrency function here
                             ),
                           );
                         },
@@ -232,14 +242,6 @@ class OrderState extends State<Order> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      if (item["isBestSeller"])
-                                        Text(
-                                          'Terlaris',
-                                          style: TextStyle(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
                                       Text(
                                         item["name"],
                                         style: const TextStyle(
@@ -256,7 +258,6 @@ class OrderState extends State<Order> {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      // Display only one price
                                       Text(
                                         formatCurrency(item["price"]),
                                         style: const TextStyle(
