@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/user_model.dart';
 import '../services/auth_api.dart';
+import '../screens/signin_screen.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -64,24 +65,25 @@ class _ProfileState extends State<Profile> {
     setState(() => isLoading = true);
     final authApi = AuthApi();
 
-    // Cek apakah ada perubahan pada setiap field
-    bool isNameChanged = _nameController.text != user!.name;
-    bool isEmailChanged = _emailController.text != user!.email;
-    bool isPhoneChanged = _phoneController.text != user!.phone;
-    bool isAddressChanged = _addressController.text != user!.address;
+    // Cek perubahan
+    bool isNameChanged = _nameController.text != (user?.name ?? '');
+    bool isEmailChanged = _emailController.text != (user?.email ?? '');
+    bool isPhoneChanged = _phoneController.text != (user?.phone ?? '');
+    bool isAddressChanged = _addressController.text != (user?.address ?? '');
     bool isPhotoChanged = _selectedPhoto != null;
 
-    // Jika tidak ada perubahan, jangan lakukan update
     if (!isNameChanged && !isEmailChanged && !isPhoneChanged && !isAddressChanged && !isPhotoChanged) {
       setState(() {
         isLoading = false;
         isEditing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tidak ada perubahan yang dilakukan")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tidak ada perubahan yang dilakukan")),
+      );
       return;
     }
 
-    // Update data user jika ada perubahan
+    // Update data user
     final updatedUser = await authApi.updateUser(
       name: _nameController.text,
       address: _addressController.text,
@@ -90,15 +92,24 @@ class _ProfileState extends State<Profile> {
       photo: _selectedPhoto,
     );
 
-    setState(() {
-      user = updatedUser;
-      isLoading = false;
-      isEditing = false;
-    });
+    if (updatedUser != null) {
+      setState(() {
+        user = updatedUser; // Update data user di state
+        isEditing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profil berhasil diperbarui")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Gagal memperbarui profil")),
+      );
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profil berhasil diperbarui")));
+    setState(() => isLoading = false);
   }
 }
+
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
@@ -126,13 +137,7 @@ class _ProfileState extends State<Profile> {
               icon: const Icon(Icons.edit, color: Colors.black),
               onPressed: () => setState(() => isEditing = true),
             ),
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black),
-            onPressed: () {
-              // Menu settings (logout)
-              _showLogoutMenu(context);
-            },
-          ),
+          
         ],
       ),
       backgroundColor: const Color(0xfff2f2f2),
@@ -145,39 +150,65 @@ class _ProfileState extends State<Profile> {
   }
 
   Widget _buildProfileView() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            // Foto profil
-            ClipRRect(
-              borderRadius: BorderRadius.circular(60),
-              child: Image.network(
-                user?.photo ?? 'https://via.placeholder.com/150', // Foto dari API atau placeholder
-                height: 150.0,
-                width: 150.0,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildProfileCard(icon: Icons.person, label: user!.name),
-            const SizedBox(height: 20),
-            _buildProfileCard(icon: Icons.email, label: user!.email),
-            const SizedBox(height: 20),
-            _buildProfileCard(icon: Icons.phone, label: user!.phone),
-            const SizedBox(height: 20),
-            _buildProfileCard(icon: Icons.location_on, label: user!.address),
-            const SizedBox(height: 20),
-            _buildProfileCard(icon: Icons.admin_panel_settings, label: user!.role.fullName),
-          ],
-        ),
-      ),
-    );
+  if (user == null) {
+    return const Center(child: Text("Data pengguna tidak tersedia"));
   }
 
+  return SingleChildScrollView(
+    child: Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(60),
+            child: Image.network(
+              user?.photo ?? 'https://via.placeholder.com/150', // Foto dari API atau placeholder
+              height: 150.0,
+              width: 150.0,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildProfileCard(icon: Icons.person, label: user?.name ?? 'No Name'),
+          const SizedBox(height: 20),
+          _buildProfileCard(icon: Icons.email, label: user?.email ?? 'No Email'),
+          const SizedBox(height: 20),
+          _buildProfileCard(icon: Icons.phone, label: user?.phone ?? 'No Phone'),
+          const SizedBox(height: 20),
+          _buildProfileCard(icon: Icons.location_on, label: user?.address ?? 'No Address'),
+          const SizedBox(height: 20),
+          _buildProfileCard(icon: Icons.admin_panel_settings, label: user?.role.fullName ?? 'No Role'),
+        ],
+      ),
+    ),
+  );
+}
+
   Widget _buildEditForm() {
-    return SingleChildScrollView(
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      actions: [
+        IconButton(
+            icon: const Icon(Icons.settings, color: Colors.black),
+            onPressed: () {
+              // Menu settings (logout)
+              _showLogoutMenu(context);
+            },
+          ),
+      ],
+      leading: IconButton(
+        icon: const Icon(Icons.close, color: Colors.black),
+        onPressed: () => setState(() => isEditing = false),
+      ),
+      title: Text(
+        "Edit Profile",
+        style: AppWidget.boldTextFeildStyle(),
+      ),
+      centerTitle: true,
+    ),
+    body: SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -240,45 +271,37 @@ class _ProfileState extends State<Profile> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildProfileCard({required IconData icon, required String label}) {
-    return Card(
-      elevation: 5,
-      shadowColor: Colors.black45,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          gradient: const LinearGradient(
-            colors: [Colors.purple, Colors.deepPurpleAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+Widget _buildProfileCard({required IconData icon, required String label}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+    child: Row(
+      children: [
+        // Ikon dengan warna biru tua
+        Icon(
+          icon,
+          color: Color.fromARGB(255, 1, 47, 74), // Warna biru tua untuk ikon
+          size: 28,
+        ),
+        const SizedBox(width: 20), // Jarak antar ikon dan teks
+        // Teks dengan warna biru tua
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 18,
+              color: Color.fromARGB(255, 1, 47, 47), // Warna biru tua untuk teks
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white70,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
   // Menu logout
   void _showLogoutMenu(BuildContext context) {
@@ -303,6 +326,11 @@ class _ProfileState extends State<Profile> {
                   backgroundColor: Colors.green,
                 ));
                 // Tambahkan logika navigasi ke halaman login jika diperlukan
+                Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => SignInScreen(),
+                ),
+              );
               },
               child: const Text('Logout'),
             ),

@@ -112,7 +112,7 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
                             onTap: () {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => InventoryPage()),
+                                MaterialPageRoute(builder: (context) => Inventory()),
                               );
                             },
                           ),
@@ -664,11 +664,6 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
               ),
             );
           }
-
-
-
-
-
 
           Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
           return Container(

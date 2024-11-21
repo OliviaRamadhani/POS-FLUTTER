@@ -24,6 +24,69 @@ class AuthApi {
     return null;
   }
 
+  // Fungsi untuk email
+  Future<bool> sendOtpToEmail(String email, String name) async {
+    final response = await http.post(
+      Uri.parse('http://192.168.2.102:8000/api/auth/register/get-email-otp'),
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: jsonEncode({'email': email, 'name': name}),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['status']; // Mengembalikan status OTP berhasil atau tidak
+    }
+    return false;
+  }
+
+  Future<User?> register(
+    String name,
+    String email,
+    String password,
+    String passwordConfirmation,
+    String phone,
+    String otpEmail,
+  ) async {
+    final response = await http.post(
+      Uri.parse('http://192.168.2.102:8000/api/auth/register'),
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+        'phone': phone,
+        'otp_email': otpEmail,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return User.fromJson(data['user']);
+    } else {
+      throw Exception('Failed to register: ${response.body}');
+    }
+  }
+
+  Future<bool> verifyOtp({required String email, required String otp}) async {
+  // Panggil endpoint API Anda untuk verifikasi OTP
+  final response = await http.post(
+    Uri.parse('https://192.168.2.102/verify-otp'),
+    body: {
+      'email': email,
+      'otp': otp,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    // Jika OTP valid
+    return true;
+  } else {
+    // Jika OTP tidak valid
+    return false;
+  }
+}
+
+
   // Fungsi untuk menyimpan token
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,7 +126,7 @@ class AuthApi {
       final token = await getToken();
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.2.102:8000/api/users'),
+        Uri.parse('http://192.168.2.102:8000/api/users/update'),
       );
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['name'] = name;

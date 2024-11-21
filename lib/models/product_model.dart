@@ -25,4 +25,6 @@ class Product {
       isSoldOut: json['is_sold_out'] ?? false,  // Menambahkan is_sold_out
     );
   }
+
+  get category => null;
 }
