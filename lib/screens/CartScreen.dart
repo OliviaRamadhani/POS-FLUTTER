@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class CartScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cart;
+  final Function(List<Map<String, dynamic>>) onCartUpdated;
 
   const CartScreen({
     Key? key,
     required this.cart,
-    required Null Function(int index, int change) updateQuantity,
-    required Null Function(int index) removeItem,
+    required this.onCartUpdated, required void Function(int index) removeItem, required void Function(int index, int change) updateQuantity,
   }) : super(key: key);
 
   @override
@@ -15,17 +15,41 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final TextEditingController _nameController = TextEditingController(); // Controller for name input
+  late List<Map<String, dynamic>> _cart;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Buat salinan cart untuk mencegah modifikasi langsung
+    _cart = List<Map<String, dynamic>>.from(widget.cart);
+  }
 
   void updateQuantity(int index, int change) {
     setState(() {
-      widget.cart[index]['quantity'] += change;
+      _cart[index]['quantity'] += change;
+      if (_cart[index]['quantity'] <= 0) {
+        _cart.removeAt(index);
+      }
+      // Panggil callback untuk update cart di parent
+      widget.onCartUpdated(_cart);
     });
   }
 
   void removeItem(int index) {
     setState(() {
-      widget.cart.removeAt(index); // Remove item from cart
+      _cart.removeAt(index);
+      // Panggil callback untuk update cart di parent
+      widget.onCartUpdated(_cart);
+    });
+  }
+
+  void clearCart() {
+    setState(() {
+      _cart.clear();
+      // Panggil callback untuk update cart di parent
+      widget.onCartUpdated(_cart);
     });
   }
 
@@ -34,136 +58,341 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   double calculateTotal() {
-    return widget.cart.fold(0, (sum, item) => sum + (item['price'] * (item['quantity'] ?? 1)));
+    return _cart.fold(0, (sum, item) => sum + (item['price'] * (item['quantity'] ?? 1)));
   }
 
   void checkout(BuildContext context) {
     final name = _nameController.text.trim();
+    final notes = _notesController.text.trim();
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your name before proceeding.')),
+        SnackBar(content: Text('Masukkan nama Anda terlebih dahulu')),
       );
       return;
     }
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Checkout'),
-        content: Text('Thank you for your purchase, $name!'), // Display customer's name
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Konfirmasi Pesanan',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Nama Pemesan', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(name),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total Pesanan', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(formatCurrency(calculateTotal()), style: TextStyle(color: Colors.green)),
+              ],
+            ),
+            if (notes.isNotEmpty) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Catatan', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(notes),
+                ],
+              ),
+            ],
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Reset cart setelah checkout
+                clearCart();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Pesanan berhasil dibuat!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Konfirmasi Pesanan',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = calculateTotal();
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Cart',
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Keranjang',
           style: TextStyle(
-            color: Colors.white, // Ubah warna teks menjadi putih
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Color.fromARGB(255, 5, 14, 61),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: clearCart,
+          ),
+        ],
       ),
-      body: widget.cart.isEmpty
-          ? const Center(child: Text('Your cart is empty.'))
-          : ListView.builder(
-              itemCount: widget.cart.length,
-              itemBuilder: (context, index) {
-                final item = widget.cart[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  child: ListTile(
-                    leading: Image.network(
-                      item["imageUrl"] ?? 'https://via.placeholder.com/80',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                    title: Text(
-                      item["name"],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () {
-                            if ((item["quantity"] ?? 1) > 1) {
-                              updateQuantity(index, -1);
-                            } else {
-                              removeItem(index);
-                            }
-                          },
-                        ),
-                        Text('${item["quantity"] ?? 1}', style: const TextStyle(fontSize: 16)),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () {
-                            updateQuantity(index, 1);
-                          },
-                        ),
-                      ],
-                    ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          formatCurrency(item["price"] * (item["quantity"] ?? 1)),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            removeItem(index);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-      bottomNavigationBar: widget.cart.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.all(16.0),
+      body: _cart.isEmpty
+          ? Center(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Name field for the customer
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Your Name',
-                      hintText: 'Enter your name',
-                      border: OutlineInputBorder(),
+                  Image.asset(
+                    'images/shopping.png',
+                    width: 250,
+                    height: 250,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Keranjang Anda kosong',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 8),
                   Text(
-                    'Total: ${formatCurrency(total)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    'Yuk, cari makanan favoritmu!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                ],
+              ),
+            )
+          : ListView(
+              padding: EdgeInsets.all(16),
+              children: [
+                Text(
+                  'Pesanan Anda',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 16),
+                ...List.generate(_cart.length, (index) {
+                  final item = _cart[index];
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
+                          ),
+                          child: Image.network(
+                            item["imageUrl"] ?? 'https://via.placeholder.com/100',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item["name"],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  formatCurrency(item["price"]),
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove_circle_outline, color: Colors.green),
+                                onPressed: () => updateQuantity(index, -1),
+                              ),
+                              Text(
+                                '${item["quantity"] ?? 1}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add_circle_outline, color: Colors.green),
+                                onPressed: () => updateQuantity(index, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                SizedBox(height: 16),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Penerima',
+                    hintText: 'Masukkan nama Anda',
+                    prefixIcon: Icon(Icons.person, color: Colors.green),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.green, width: 2),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: _notesController,
+                  decoration: InputDecoration(
+                    labelText: 'Catatan Pesanan',
+                    hintText: 'Tambahkan catatan (opsional)',
+                    prefixIcon: Icon(Icons.notes, color: Colors.green),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.green, width: 2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+      bottomNavigationBar: _cart.isNotEmpty
+          ? Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Total Pesanan',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        formatCurrency(calculateTotal()),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
                   ElevatedButton(
                     onPressed: () => checkout(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      backgroundColor: Colors.green,
+                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text('Proceed to Checkout'),
+                    child: Text(
+                      'Pesan Sekarang',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // Menjadikan teks berwarna putih
+                      ),
+                    ),
                   ),
                 ],
               ),
