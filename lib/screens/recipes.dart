@@ -69,49 +69,51 @@
                               ),
                               SizedBox(width: 16),
                               // Share Button with Bold Background Color
-                              Container(
-                                padding: EdgeInsets.all(8), // Padding around the icon
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 255, 255, 255), // Darker and more solid background
-                                  borderRadius: BorderRadius.circular(30), // Rounded corners for the background
-                                ),
-                                child: Icon(Icons.share, color: const Color.fromARGB(255, 0, 0, 0)),
-                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  // Image Carousel
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
-                    child: SizedBox(
-                      height: 80,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: 5, // Replace with the number of images
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.asset(
-                                'images/P Aor.jpg', // Replace with your image
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
+                    // Image Carousel
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
+                      child: SizedBox(
+                        height: 80,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: 5, // Replace with the number of images you have
+                          itemBuilder: (context, index) {
+                            // List of images
+                            List<String> imagePaths = [
+                              'images/Gaeng Som.jpg',
+                              'images/t.jpg',
+                              'images/h.jpg',
+                              'images/a.jpg',
+                              'images/i.jpg',
+                            ];
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  imagePaths[index], // Use the current index to get the image path
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+
+                  ],
+                ),
               // Recipe Details
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -150,7 +152,7 @@
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        'Recipe by Dianne Russell', // Replace with the chef's name
+                        'Recipe by Chef Arnold', // Replace with the chef's name
                         style: TextStyle(
                           fontSize: 16,
                           fontStyle: FontStyle.italic,
@@ -170,21 +172,13 @@
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Dianne Russell',
+                              'Arnold',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text('Chef'),
                           ],
                         ),
                         Spacer(),
-                        IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.phone, color: Colors.orange),
-                        ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.message, color: Colors.orange),
-                        ),
                       ],
                     ),
                     SizedBox(height: 16),
