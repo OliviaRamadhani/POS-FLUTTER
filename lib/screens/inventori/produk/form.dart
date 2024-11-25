@@ -1,167 +1,193 @@
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// // import 'package:image_picker/image_picker.dart'; // Import ImagePicker
-// import '/services/product_api.dart';
-// import '/models/product_model.dart';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '/services/product_api.dart';
+import '/models/product_model.dart';
 
-// class AddEditProductPage extends StatefulWidget {
-//   final bool isEdit;
-//   final Product? product;
+class AddProductScreen extends StatefulWidget {
+  const AddProductScreen({Key? key}) : super(key: key);
 
-//   AddEditProductPage({required this.isEdit, this.product});
+  @override
+  _AddProductScreenState createState() => _AddProductScreenState();
+}
 
-//   @overridea
-//   _AddEditProductPageState createState() => _AddEditProductPageState();
-// }
+class _AddProductScreenState extends State<AddProductScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final ProductApi _productApi = ProductApi();
+  File? _imageFile;
 
-// class _AddEditProductPageState extends State<AddEditProductPage> {
-//   final _formKey = GlobalKey<FormState>();
-//   late String name;
-//   late String description;
-//   late File? imageFile;  // Menggunakan File untuk gambar
-//   late int price;
-//   final ProductApi productApi = ProductApi();
+  String _name = '';
+  String _description = '';
+  String _category = '';
+  int _price = 0;
+  bool _isSoldOut = false;
+  final String _uuid = ''; // UUID untuk produk baru
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     if (widget.isEdit) {
-//       // Jika edit, isi form dengan data produk yang ada
-//       final product = widget.product!;
-//       name = product.name;
-//       description = product.description;
-//       imageFile = null; // Anda bisa menggunakan URL gambar untuk edit jika diperlukan
-//       price = product.price;
-//     } else {
-//       // Jika tambah, buat data kosong
-//       name = '';
-//       description = '';
-//       imageFile = null;
-//       price = 0;
-//     }
-//   }
+  // Pilih gambar dari galeri
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-//   // Fungsi untuk memilih gambar dari galeri atau kamera
-//   // Future<void> _pickImage() async {
-//   //   final picker = ImagePicker();
-//   //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
 
-//   //   if (pickedFile != null) {
-//   //     setState(() {
-//   //       imageFile = File(pickedFile.path);  // Simpan gambar yang dipilih
-//   //     });
-//   //   }
-//   // }
+  // Fungsi untuk menyimpan produk baru
+  Future<void> _saveProduct() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(widget.isEdit ? 'Edit Product' : 'Add Product'),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Form(
-//           key: _formKey,
-//           child: Column(
-//             children: [
-//               TextFormField(
-//                 initialValue: name,
-//                 decoration: InputDecoration(labelText: 'Product Name'),
-//                 onChanged: (value) => setState(() => name = value),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Please enter a product name';
-//                   }
-//                   return null;
-//                 },
-//               ),
-//               TextFormField(
-//                 initialValue: description,
-//                 decoration: InputDecoration(labelText: 'Description'),
-//                 onChanged: (value) => setState(() => description = value),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Please enter a description';
-//                   }
-//                   return null;
-//                 },
-//               ),
-//               // Gambar produk
-//               // GestureDetector(
-//               //   onTap: _pickImage,
-//               //   child: Container(
-//               //     padding: EdgeInsets.all(10),
-//               //     color: Colors.grey[200],
-//               //     child: imageFile == null
-//               //         ? Column(
-//               //             mainAxisAlignment: MainAxisAlignment.center,
-//               //             children: [
-//               //               Icon(Icons.add_a_photo, color: Colors.grey),
-//               //               Text('Tap to pick an image'),
-//               //             ],
-//               //           )
-//               //         : Image.file(imageFile!, height: 150), // Menampilkan gambar yang dipilih
-//               //   ),
-//               // ),
-//               TextFormField(
-//                 initialValue: price.toString(),
-//                 decoration: InputDecoration(labelText: 'Price'),
-//                 keyboardType: TextInputType.number,
-//                 onChanged: (value) => setState(() => price = int.parse(value)),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Please enter a price';
-//                   }
-//                   return null;
-//                 },
-//               ),
-//               SizedBox(height: 20),
-//               ElevatedButton(
-//                 onPressed: _submitForm,
-//                 child: Text(widget.isEdit ? 'Update Product' : 'Add Product'),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
+      // Membuat objek produk
+      final newProduct = Product(
+        uuid: _uuid, // UUID untuk produk
+        name: _name,
+        category: _category,
+        description: _description,
+        imageUrl: '', // Image URL akan digantikan di server
+        price: _price,
+        isSoldOut: _isSoldOut,
+      );
 
-//   Future<void> _submitForm() async {
-//     if (_formKey.currentState!.validate()) {
-//       if (imageFile == null) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Please select an image')),
-//         );
-//         return;
-//       }
+      try {
+        // Menggunakan API untuk membuat produk baru tanpa token
+        await _productApi.createProduct(
+          newProduct,
+          imageFile: _imageFile,
+        );
 
-//       final product = Product(
-//         id: widget.isEdit ? widget.product!.id : 0,  // Gunakan ID produk yang ada saat edit
-//         name: name,
-//         description: description,
-//         imageUrl: '',  // Anda bisa meng-upload gambar ke server dan dapatkan URL-nya
-//         price: price,
-//         isSoldOut: false,  // Default isSoldOut = false
-//       );
+        if (!mounted) return; // Cek widget masih terpasang
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produk berhasil ditambahkan!')),
+        );
+        Navigator.pop(context); // Kembali ke halaman sebelumnya
+      } catch (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menambahkan produk: $error')),
+        );
+      }
+    }
+  }
 
-//       try {
-//         if (widget.isEdit) {
-//           await productApi.updateProduct(product);  // Update produk
-//         } else {
-//           await productApi.createProduct(product);  // Tambah produk baru
-//         }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tambah Produk'),
+        backgroundColor: const Color.fromARGB(255, 5, 14, 61),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Input Nama Produk
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Nama Produk'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Nama produk tidak boleh kosong';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _name = value!;
+                  },
+                ),
 
-//         Navigator.pop(context);  // Kembali ke halaman sebelumnya
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text(widget.isEdit ? 'Product updated successfully' : 'Product added successfully')),
-//         );
-//       } catch (e) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Failed to submit product')),
-//         );
-//       }
-//     }
-//   }
-// }
+                // Input Deskripsi
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Deskripsi'),
+                  maxLines: 3,
+                  onSaved: (value) {
+                    _description = value!;
+                  },
+                ),
+
+                // Input Kategori
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Kategori'),
+                  onSaved: (value) {
+                    _category = value!;
+                  },
+                ),
+
+                // Input Harga
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Harga'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Harga tidak boleh kosong';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Masukkan angka yang valid';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _price = int.parse(value!);
+                  },
+                ),
+
+                // Input Sold Out
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Sold Out'),
+                    Switch(
+                      value: _isSoldOut,
+                      onChanged: (value) {
+                        setState(() {
+                          _isSoldOut = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                // Pilih Gambar
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text('Pilih Gambar'),
+                    ),
+                    if (_imageFile != null) ...[
+                      const SizedBox(width: 16),
+                      Image.file(
+                        _imageFile!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
+                    ],
+                  ],
+                ),
+
+                // Tombol Simpan
+                const SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _saveProduct,
+                    child: const Text('Simpan'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 5, 14, 61),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

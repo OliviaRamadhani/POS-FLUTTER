@@ -96,7 +96,9 @@ class AuthApi {
   // Fungsi untuk mendapatkan token yang tersimpan
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    final token = prefs.getString('auth_token');
+    print('Token: $token'); // Tambahkan log
+    return token;
   }
 
   // Fungsi untuk menyimpan data user
@@ -106,7 +108,7 @@ class AuthApi {
   }
 
   // Fungsi untuk mendapatkan data user
-  Future<User?> getUser() async {
+  Future<User?> getUser(String token) async {
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user');
     if (userData != null) {
@@ -126,7 +128,7 @@ class AuthApi {
       final token = await getToken();
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.2.102:8000/api/users/update'),
+        Uri.parse('http://192.168.2.102:8000/api/profile/update'),
       );
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['name'] = name;

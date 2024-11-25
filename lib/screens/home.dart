@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pos2_flutter/screens/inventori/produk/index.dart';
 import 'package:pos2_flutter/screens/profile.dart';
 import 'package:pos2_flutter/screens/signin_screen.dart';
 import 'package:pos2_flutter/widgets/support_widget.dart';
-import 'package:pos2_flutter/services/auth_api.dart';
+import '../services/auth_api.dart';
 import 'package:pos2_flutter/models/user_model.dart';
 import 'dart:async'; // Import for Timer
 
 final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
-
-
       
         class MyApp extends StatelessWidget {
           @override
@@ -27,117 +26,145 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
       _MyDrawerState createState() => _MyDrawerState();
     }
 
-      class _MyDrawerState extends State<MyDrawer> {
-        User? user;
-        bool isLoading = true;
+     class _MyDrawerState extends State<MyDrawer> {
+  User? user;
+  bool isLoading = true;
 
-        @override
-        void initState() {
-          super.initState();
-          _fetchUser();
+  @override
+  void initState() {
+    super.initState();
+    _fetchUser();
+  }
+
+  Future<void> _fetchUser() async {
+    try {
+      // Ambil token dari SharedPreferences
+      String? token = await _authApi.getToken();
+
+      if (token != null) {
+        // Panggil API untuk mendapatkan data pengguna
+        User? fetchedUser = await _authApi.getUser(token);
+        if (fetchedUser != null) {
+          setState(() {
+            user = fetchedUser;
+          });
         }
+      }
+    } catch (e) {
+      print('Error fetching user: $e'); // Debugging log
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
-        Future<void> _fetchUser() async {
-          try {
-            // Panggil API untuk mendapatkan data user
-            User? fetchedUser = await _authApi.getUser();
-            setState(() {
-              user = fetchedUser;
-              isLoading = false;
-            });
-          } catch (e) {
-            setState(() {
-              isLoading = false;
-            });
-            // Tangani error jika perlu, misalnya tampilkan snackbar atau log error
-            print('Error fetching user: $e');
-          }
-        }
+  Future<void> logOut() async {
+    await _authApi.logout(); // Logout pengguna
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SignInScreen()),
+    );
+  }
 
-        Future<void> logOut() async {
-          // Panggil fungsi logout dari AuthApi
-          await _authApi.logout();
-
-          // Navigasi kembali ke SignInScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => SignInScreen()),
-          );
-        }
-
-        @override
-        Widget build(BuildContext context) {
-          return Drawer(
-            child: isLoading
-                ? Center(child: CircularProgressIndicator())
-                : ListView(
-                    padding: EdgeInsets.zero,
-                    children: <Widget>[
-                      DrawerHeader(
-                        decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 5, 14, 61),
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 5, 14, 61),
+                  ),
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+                        child: user?.photo != null
+                            ? Image.network(
+                                user!.photo!,
+                                height: 80,
+                                width: 80,
+                                fit: BoxFit.cover,
+                              )
+                            : Icon(Icons.person,
+                                size: 80, color: Colors.white),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        user?.name ?? 'Guest',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        child: Column(
-                          children: [
-                              // Arahkan ke halaman
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: user?.photo != null
-                                  ? Image.network(user!.photo!, height: 80, width: 80, fit: BoxFit.cover)
-                                  : Icon(Icons.person, size: 80, color: Colors.white), // Tampilkan icon jika tidak ada foto
-                            ),
-                            SizedBox(height: 10),
-                            Text(user?.name ?? 'Guest', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                            Text(user?.email ?? 'Please log in to access more features', style: TextStyle(color: Colors.white70)),
-                           
-                          ],
-                        ),
                       ),
-                      ListTile(
-                        title: Text('Home'),
-                        leading: Icon(Icons.house_outlined),
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Home()), 
-                          );
-                        },
-                      ),
-                      ExpansionTile(
-                        title: Text('Inventori'),
-                        leading: Icon(Icons.inventory_2_outlined),
-                        children: <Widget>[
-                          ListTile(
-                            title: Text('Produk'),
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => Inventory()),
-                              );
-                            },
-                          ),
-                        ], 
-                      ),
-                      ListTile(
-                        title: Text('Settings'),
-                        leading: Icon(Icons.settings_outlined),
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Home()),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        title: Text('Log Out'),
-                        leading: Icon(Icons.logout_outlined),
-                        onTap: logOut,
+                      Text(
+                        user?.email ?? 'Please log in to access more features',
+                        style: TextStyle(color: Colors.white70),
                       ),
                     ],
                   ),
-            );
-          }
-        }
+                ),
+                ListTile(
+                  title: Text('Home'),
+                  leading: Icon(Icons.house_outlined),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                    );
+                  },
+                ),
+                if (user?.role.name == 'admin') ...[
+                  ExpansionTile(
+                    title: Text('Inventori'),
+                    leading: Icon(Icons.inventory_2_outlined),
+                    children: <Widget>[
+                      ListTile(
+                        title: Text('Produk'),
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Inventory()),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        title: Text('Laporan'),
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Inventory()),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+                ListTile(
+                  title: Text('Settings'),
+                  leading: Icon(Icons.settings_outlined),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                    );
+                  },
+                ),
+                ListTile(
+                  title: Text('Log Out'),
+                  leading: Icon(Icons.logout_outlined),
+                  onTap: logOut,
+                ),
+              ],
+            ),
+    );
+  }
+}
 
 
         class Home extends StatefulWidget {
@@ -160,9 +187,9 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
 
         final List<Map<String, String>> discountItems = [
           {
-            "title": "Seasonal Discount",
-            "discount": "Up to 50% off",
-            "imagePath": "images/bgg.png",
+            "title": "Discount of Today",
+            "discount": "Discount Up To 30%",
+            "imagePath": "images/thailand.png",
           },
           {
             "title": "Limited Time Offer",
@@ -415,9 +442,9 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
                         itemBuilder: (context, index) {
                           final item = discountItems[index];
                           return _buildDiscountBanner(
-                            item["title"],    // No null operator (!) to allow fallback
-                            item["discount"], // No null operator (!) to allow fallback
-                            item["imagePath"], // No null operator (!) to allow fallback
+                            item["title"],
+                            item["discount"],
+                            item["imagePath"],
                           );
                         },
                         onPageChanged: (index) {
@@ -449,6 +476,7 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
                 ),
               );
             }
+
 
            Widget _buildCategoryRow() {
             return Row(
@@ -665,26 +693,38 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
             );
           }
 
-          Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Color(0xFFF3E7DC),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              children: [
-                Expanded(
+
+
+
+
+
+        Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
+          bool isFullImage = (title == null || title.isEmpty) && (discount == null || discount.isEmpty);
+
+          return Stack(
+            children: [
+              // Full image display
+              Positioned.fill(
+                child: Image.asset(
+                  imagePath ?? "images/default.png",
+                  fit: BoxFit.cover,
+                ),
+              ),
+              // Position title and discount text in the bottom-left corner
+              if (!isFullImage)
+                Positioned(
+                  bottom: 70,  // Positioned above the "Shop Now" button
+                  right: 10,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         title ?? "Default Title",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 5, 14, 61),
+                          color: Colors.white,
+                          shadows: [Shadow(blurRadius: 5, color: Colors.black)],
                         ),
                       ),
                       SizedBox(height: 5),
@@ -692,40 +732,39 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
                         discount ?? "Default Discount",
                         style: TextStyle(
                           fontSize: 14,
-                          color: Color.fromARGB(255, 5, 14, 61),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          "Shop Now",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          color: Colors.white,
+                          shadows: [Shadow(blurRadius: 5, color: Colors.black)],
                         ),
                       ),
                     ],
                   ),
                 ),
-                Image.asset(
-                  imagePath ?? "images/default.png",
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.contain,
+              // Positioned "Shop Now" button in the bottom-right corner
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 5, 14, 61),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    "Shop Now",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         }
+
 
 
 
