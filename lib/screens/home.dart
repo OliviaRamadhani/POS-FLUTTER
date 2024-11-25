@@ -5,9 +5,11 @@ import 'package:pos2_flutter/screens/inventori/produk/index.dart';
 import 'package:pos2_flutter/screens/profile.dart';
 import 'package:pos2_flutter/screens/signin_screen.dart';
 import 'package:pos2_flutter/widgets/support_widget.dart';
+import 'package:pos2_flutter/screens/dashboard/dashboard_screen.dart';
 import '../services/auth_api.dart';
 import 'package:pos2_flutter/models/user_model.dart';
 import 'dart:async'; // Import for Timer
+      import 'package:pos2_flutter/screens/recipes.dart';
 
 final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
       
@@ -120,6 +122,16 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
                   },
                 ),
                 if (user?.role.name == 'admin') ...[
+                   ListTile(
+                    title: Text('Dashboard'),
+                    leading: Icon(Icons.graphic_eq_outlined),
+                    onTap: () {
+                      Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => DashboardScreen()),
+                      );
+                    },
+                  ),
                   ExpansionTile(
                     title: Text('Inventori'),
                     leading: Icon(Icons.inventory_2_outlined),
@@ -175,6 +187,7 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
         class _HomeState extends State<Home> {
         final PageController _pageController = PageController();
         int _currentIndex = 0;
+        int? selectedIndex;
         String _selectedFilter = "All"; 
         late Timer _flashSaleTimer;  // Timer for flash sale countdown
         late Timer _pageTransitionTimer;  // Timer for page transitions
@@ -287,148 +300,468 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
           });
         }
 
+        
+           Widget _buildSearchBar() {
+  return TextField(
+    decoration: InputDecoration(
+      hintText: 'Search Any Recipe...',
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      filled: true,
+      fillColor: const Color.fromARGB(255, 255, 255, 255),
+      prefixIcon: Icon(Icons.search, color: Colors.black), // Menambahkan ikon di dalam TextField
+    ),
+  );
+}
+
 
         @override
-        Widget build(BuildContext context) {
-          return Scaffold(
-            backgroundColor: Color(0xFFF8F8F8),
-            drawer: MyDrawer(),
-            
-            appBar: AppBar(
-              backgroundColor: Color.fromARGB(255, 5, 14, 61),
-              leading: Builder(
-                builder: (context) => IconButton(
-                  icon: Icon(Icons.menu, color: Color.fromARGB(255, 255, 255, 255)),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer(); // Open drawer when menu button is pressed
-                  },
-                ),
+          Widget build(BuildContext context) {
+            return Scaffold(
+              backgroundColor: Color(0xFFF8F8F8),
+              drawer: _buildDrawer(context),
+              appBar: PreferredSize(
+                preferredSize: Size.fromHeight(200),
+                child: _buildCustomAppBar(context),
               ),
-              actions: [
-                // Profile icon and notification icon in the actions section
-                IconButton(
-                  icon: Icon(Icons.notifications, color: Color.fromARGB(255, 255, 255, 255), size: 24),
-                  onPressed: () {
-                    // Action for notification icon (if needed)
-                  },
+
+     body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 20),
+
+              // Discount Slider with Scroll Indicator
+                    _buildSectionTitle('Discount & Flash Sale'),  
+
+                    _buildDiscountSlider(),
+
+                    SizedBox(height: 20), // Add space between discount banner and other sections
+                    _buildFlashSaleSection(),
+
+                    SizedBox(height: 20), // Add space between categories and flash sale
+
+                    // Flash Sale Section
+
+                    _buildSectionTitle('Categories'),
+
+              _buildCategoryList(context),
+
+            
+
+              _buildSectionTitle('Popular Recipes'),
+
+              SizedBox(height: 20),
+
+              _buildPopularRecipe(context),
+
+              SizedBox(height: 20),
+
+              _buildSectionTitle('Top Chefs'),
+
+              SizedBox(height: 20),
+
+              _buildChefList(),
+
+              SizedBox(height: 20),
+
+               _buildGoNow(),
+
+               SizedBox(height: 20),
+
+                _buildThailand(),
+
+                SizedBox(height: 20),
+
+              _buildGoFood(),
+              SizedBox(height: 20),
+
+               _buildGoFoods(),
+               SizedBox(height: 20),
+
+               
+
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 5, 14, 61),
+            ),
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: Image.asset(
+                    "images/siam1.png",
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                SizedBox(width: 15),  // Space between icons
+                SizedBox(height: 10),
+                Text(
+                  "Siam Spice Co.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                      // Display the selected location
+          ),
+          ListTile(
+            title: Text('Home'),
+            leading: Icon(Icons.house_outlined),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Home()),
+              );
+            },
+          ),
+          ExpansionTile(
+            title: Text('Inventori'),
+            leading: Icon(Icons.inventory_2_outlined),
+            children: [
+              ListTile(
+                title: Text('Produk'),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => Inventory ()),
+                  );
+                },
+              ),
+            ],
+          ),
+          ListTile(
+            title: Text('Settings'),
+            leading: Icon(Icons.settings_outlined),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Home()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildCustomAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Color.fromARGB(255, 5, 14, 61),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      flexibleSpace: Padding(
+        padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
+        child: Column(
+          children: [
+            SizedBox(height: 50),
+            _buildSearchBar(),
+            SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Location:", style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 5, 14, 61))),
                     Text(
-                      _selectedLocation == LatLng(0, 0)
-                          ? "Select a location"
-                          : "${_selectedLocation.latitude}, ${_selectedLocation.longitude}",
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 5, 14, 61)),
+                      "Location:",
+                      style: TextStyle(fontSize: 14, color: Colors.white),
+                    ),
+                    Text(
+                      "Select a location",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
-                // Location picker button
                 IconButton(
-                  icon: Icon(Icons.location_on, color: Color.fromARGB(255, 5, 14, 61)),
+                  icon: Icon(Icons.location_on, color: Colors.white),
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Dialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Container(
-                          height: 400,
-                          child: GoogleMap(
-                            initialCameraPosition: CameraPosition(
-                              target: _selectedLocation,
-                              zoom: 12,
-                            ),
-                            markers: _markers,
-                            onMapCreated: (controller) {
-                              _mapController = controller;
-                            },
-                            onTap: (LatLng location) {
-                              _onMapTapped(location);
-                            },
-                          ),
-                        ),
-                      ),
-                    );
+                    // Tambahkan aksi untuk memilih lokasi
                   },
                 ),
               ],
             ),
-                    SizedBox(height: 20),
-
-                    // Search Bar
-                    _buildSearchBar(),
-
-                    SizedBox(height: 20), // Add space between search bar and discount slider
-
-                    // Discount Slider with Scroll Indicator
-                    _buildDiscountSlider(),
-
-                    SizedBox(height: 20), // Add space between discount banner and other sections
-
-                    // Categories
-                    _buildCategoryRow(),
-
-                    SizedBox(height: 20), // Add space between categories and flash sale
-
-                    // Flash Sale Section
-                    _buildFlashSaleSection(),
-
-                    SizedBox(height: 20), // Add space between flash sale and filter section
-
-                    // Filters with functionality
-                    _buildFilterRow(),
-
-                    // Product Cards in a Grid
-                    _buildProductGrid(),
-                  ],
-                ),
-              ),
-            ),
+          ],
+        ),
+      ),
+      leading: Builder(
+        builder: (BuildContext context) {
+          return IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
           );
-        }
+        },
+      ),
+    );
+  }
 
-        
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
 
-            Widget _buildSearchBar() {
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Color(0xFFEEEEEE),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
+  
+Widget _buildCategoryList(BuildContext context) {
+  final categories = [
+    {'name': 'Side Dish', 'image': 'images/Mango Sticky Rice.jpg'},
+    {'name': 'Drink', 'image': 'images/Coconut Water.jpg'},
+    {'name': 'Food', 'image': 'images/khao.jpeg'},
+  ];
+
+  return Column(
+    children: [
+      SizedBox(
+        height: 120,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedIndex = index; // Mengubah index yang dipilih
+                  });
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(Icons.search, color: Color.fromARGB(255, 5, 14, 61)),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search",
-                          border: InputBorder.none,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(40), // Melengkungkan sudut
+                      child: Container(
+                        width: 150, // Lebar gambar
+                        height: 70, // Tinggi gambar
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(categories[index]['image']!),
+                            fit: BoxFit.cover, // Gambar tetap full
+                            colorFilter: ColorFilter.mode(
+                              Colors.black.withOpacity(0.4), // Menambahkan lapisan hitam transparan
+                              BlendMode.darken, // Menggunakan mode untuk membuat gambar lebih gelap
+                            ),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6), // Bayangan hitam
+                              blurRadius: 8.0, // Ukuran blur bayangan
+                              offset: Offset(2.0, 2.0), // Posisi bayangan
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center, // Menyusun teks di tengah
+                          children: [
+                            // Teks kategori berada di atas gambar
+                            Text(
+                              categories[index]['name']!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: selectedIndex == index ? Colors.white : const Color.fromARGB(176, 255, 248, 56),
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 8.0, // Jarak bayangan
+                                    color: Colors.black.withOpacity(0.6), // Bayangan hitam
+                                    offset: Offset(2.0, 2.0), // Posisi bayangan
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
+              ),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+  Widget _buildPopularRecipe(BuildContext context) {
+  return Container(
+    padding: EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: Colors.grey),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: GestureDetector(
+      onTap: () {
+        // Navigate to RecipeDetailScreen when tapped
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RecipeDetailScreen()),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            'images/Gaeng Som.jpg',
+            fit: BoxFit.cover,
+          ),
+          SizedBox(height: 10),
+          Text(
+            'Gaeng Som Tam',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 5),
+          Text(
+            '35 min · Easy · by Arlene McCoy',
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              // Navigate to RecipeDetailScreen when pressed
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RecipeDetailScreen()),
               );
-            }
+            },
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            ),
+            child: Text('View Recipe'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+
+Widget _buildChefList() {
+  final chefs = [
+    {'name': 'Chef Chada', 'image': 'images/100.jpg', 'rating': 4.5},
+    {'name': 'Chef Anong', 'image': 'images/110.jpg', 'rating': 4.0},
+    {'name': 'Chef Jai', 'image': 'images/120.jpg', 'rating': 4.8},
+    {'name': 'Chef Arnold.', 'image': 'images/140.jpg', 'rating': 3.9},
+    {'name': 'Chef Viera', 'image': 'images/150.jpg', 'rating': 3.5},
+  ];
+
+  return SizedBox(
+    height: 200, // Increase height to make space for the name
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: chefs.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Gambar chef dengan overlay gelap
+              ClipRRect(
+                borderRadius: BorderRadius.circular(60), // Perfect circle for the image
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(chefs[index]['image'] as String), // Cast to String
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.4), // Menambahkan lapisan hitam transparan
+                        BlendMode.darken, // Menggunakan mode untuk membuat gambar lebih gelap
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 8), // Add space between the image and the name
+              // Nama chef yang ditempatkan di bawah gambar
+              Text(
+                chefs[index]['name'] as String, // Cast to String
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 0, 0, 0),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              // Rating dan ikon bintang di bawah nama
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                    size: 16,
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    chefs[index]['rating'].toString(),
+                    style: TextStyle(
+                      color: const Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
+
+
+
 
               Widget _buildDiscountSlider() {
               return SizedBox(
@@ -478,16 +811,6 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
             }
 
 
-           Widget _buildCategoryRow() {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildCategory("🍔", "Food"),
-                _buildCategory("🍹", "Drink"),
-                _buildCategory("🍰", "Dessert"),
-              ],
-            );
-          }
               // Flash Sale section with countdown timer
               Widget _buildFlashSaleSection() { 
                 return Column(
@@ -506,197 +829,7 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
               }
 
 
-         Widget _buildFilterRow() {
-        final filters = ["All", "Food", "Drink", "Dessert"];  // Modified filters
-        return Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-            child: Row(
-              children: filters.map((filter) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12), // Add more space between filters
-                  child: GestureDetector(
-                    onTap: () => _onFilterSelected(filter),
-                    child: _buildFilter(filter, isActive: _selectedFilter == filter),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        );
-      }
-
-
-
-          Widget _buildProductGrid() {
-          // List of product details with title, price, image, and category
-          final products = [
-            {"title": "Coconut Water", "price": "\$5.99", "image": "images/Coconut Water.jpg", "category": "Drink"},
-            {"title": "Gaeng Som", "price": "\$12.99", "image": "images/Gaeng Som.jpg", "category": "Food"},
-            {"title": "Khanom Jeen Nam Ya", "price": "\$49.99", "image": "images/Khanom Jeen Nam Ya.jpg", "category": "Food"},
-            {"title": "Khao", "price": "\$29.99", "image": "images/khao.jpeg", "category": "Food"},
-            {"title": "Larb", "price": "\$39.99", "image": "images/Larb.jpg", "category": "Food"},
-            {"title": "Lod Chong", "price": "\$7.99", "image": "images/Lod Chong.jpg", "category": "Dessert"},
-            {"title": "Mango Sticky Rice", "price": "\$9.99", "image": "images/Mango Sticky Rice.jpg", "category": "Dessert"},
-            {"title": "P Aor", "price": "\$11.99", "image": "images/P Aor.jpg", "category": "Food"},
-            {"title": "Pad", "price": "\$14.99", "image": "images/pad.jpeg", "category": "Food"},
-            {"title": "Pranakorn", "price": "\$16.99", "image": "images/Pranakorn .jpg", "category": "Food"},
-            {"title": "Savoey", "price": "\$13.99", "image": "images/Savoey.jpg", "category": "Food"},
-            {"title": "Soi", "price": "\$8.99", "image": "images/soi.jpeg", "category": "Food"},
-            {"title": "Somtam", "price": "\$7.99", "image": "images/somtam.jpeg", "category": "Food"},
-            {"title": "Tako", "price": "\$5.99", "image": "images/Tako.jpg", "category": "Dessert"},
-            {"title": "Tamarind Juice", "price": "\$3.99", "image": "images/Tamarind Juice.jpg", "category": "Drink"},
-            {"title": "Thai", "price": "\$12.99", "image": "images/thai.jpeg", "category": "Drink"},
-            {"title": "Tom Kha Kai", "price": "\$15.99", "image": "images/Tom Kha Kai.jpg", "category": "Food"},
-            {"title": "Yam Nua", "price": "\$17.99", "image": "images/Yam Nua.jpg", "category": "Food"},
-          ];
-
-          // Filter products based on the selected filter
-          List<Map<String, String>> filteredProducts = [];
-          if (_selectedFilter == "All") {
-            filteredProducts = products; // Show all products if "All" is selected
-          } else {
-            filteredProducts = products.where((product) => product["category"] == _selectedFilter).toList();
-          }
-
-          return GridView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12, // Increased space between grid items
-              mainAxisSpacing: 12, // Increased space between grid items
-              childAspectRatio: 0.75,
-            ),
-            itemCount: filteredProducts.length,
-            itemBuilder: (context, index) {
-              final product = filteredProducts[index];
-              return _buildProductCard(
-                product["title"]!, 
-                product["price"]!, 
-                product["image"]!, 
-                likes: likeCounts[index], 
-                onLikeTapped: () => _toggleLike(index)
-              );
-            },
-          );
-        }
-
-
-          Widget _buildProductCard(String title, String price, String imageUrl, {int likes = 0, required VoidCallback onLikeTapped}) {
-            return Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        children: [
-                          Image.asset(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: onLikeTapped,
-                              child: Icon(
-                                likes == 0 ? Icons.favorite_border : Icons.favorite, // Change icon based on like state
-                                color: Colors.red,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        title,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        price,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 5, 14, 61)),
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,  // Align text and button to opposite sides
-                      children: [
-                        Row(
-                          children: [
-                            // Shift like count to the left by adding padding or adjusting alignment
-                            Padding(
-                              padding: EdgeInsets.only(left: 10 , right: 35), // Adjust this value to fine-tune the position
-                              child: Text(
-                                '$likes', // Display the number of likes
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                              ),
-                            ),
-                          ],
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Add logic for shopping action here
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            "Shop Now",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-
-
-
-
+        
 
         Widget _buildDiscountBanner(String? title, String? discount, String? imagePath) {
           bool isFullImage = (title == null || title.isEmpty) && (discount == null || discount.isEmpty);
@@ -765,52 +898,405 @@ final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
           );
         }
 
+      Widget _buildGoFood() {
+        return Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15), // More rounded corners
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                offset: Offset(0, 4),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.asset(
+                    'images/thailand.png', // Ganti dengan path gambar Anda
+                    height: 150, // Larger image for better visibility
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                SizedBox(height: 15), // Adjusted space between image and title
 
+                // Title/Heading with shadow for better visibility
+                Text(
+                  'Delicious Thailand Deals!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                    shadows: [
+                      Shadow(
+                        blurRadius: 5,
+                        color: Colors.black.withOpacity(0.3),
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
 
+                // Description
+                Text(
+                  'Explore exciting discounts and popular menus near you. Order now and enjoy!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF555555),
+                  ),
+                ),
+                SizedBox(height: 20),
 
-            Widget _buildCategory(String icon, String label) {
-              return Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Color(0xFFF8F8F8),
-                      borderRadius: BorderRadius.circular(50),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      icon,
-                      style: TextStyle(fontSize: 24),
+                // Button with icon and improved design
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle button press (e.g., navigate to another page)
+                  },
+                  icon: Icon(Icons.food_bank, color: Colors.white), // Added food icon
+                  label: Text(
+                    'Order Now',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 5),
-                  Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color:Color.fromARGB(255, 5, 14, 61))),
-                ],
-              );
-            }
+                  style: ElevatedButton.styleFrom(
+                    iconColor: Color(0xFFFF4500), // Vibrant orange background
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30), // Rounded button
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
 
-            // Make sure this method is defined in the same class
-          Widget _buildFilter(String label, {required bool isActive}) {
-            return Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: isActive ? Color.fromARGB(255, 5, 14, 61) : Colors.transparent,
-                borderRadius: BorderRadius.circular(30),
+      Widget _buildGoNow() {
+        return Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15), // More rounded corners
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                offset: Offset(0, 4),
+                blurRadius: 10,
               ),
-              child: Text(
-                label,
+            ],
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.asset(
+                    'images/thailand.png', // Ganti dengan path gambar Anda
+                    height: 150, // Larger image for better visibility
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                SizedBox(height: 15), // Adjusted space between image and title
+
+                // Title/Heading with shadow for better visibility
+                Text(
+                  'Delicious Thailand Deals!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                    shadows: [
+                      Shadow(
+                        blurRadius: 5,
+                        color: Colors.black.withOpacity(0.3),
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // Description
+                Text(
+                  'Explore exciting discounts and popular menus near you. Order now and enjoy!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF555555),
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Button with icon and improved design
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle button press (e.g., navigate to another page)
+                  },
+                  icon: Icon(Icons.food_bank, color: Colors.white), // Added food icon
+                  label: Text(
+                    'Order Now',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    iconColor: Color(0xFFFF4500), // Vibrant orange background
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30), // Rounded button
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      Widget _buildThailand() {
+        return Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15), // More rounded corners
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                offset: Offset(0, 4),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.asset(
+                    'images/thailand.png', // Ganti dengan path gambar Anda
+                    height: 150, // Larger image for better visibility
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                SizedBox(height: 15), // Adjusted space between image and title
+
+                // Title/Heading with shadow for better visibility
+                Text(
+                  'Delicious Thailand Deals!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                    shadows: [
+                      Shadow(
+                        blurRadius: 5,
+                        color: Colors.black.withOpacity(0.3),
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // Description
+                Text(
+                  'Explore exciting discounts and popular menus near you. Order now and enjoy!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF555555),
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Button with icon and improved design
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle button press (e.g., navigate to another page)
+                  },
+                  icon: Icon(Icons.food_bank, color: Colors.white), // Added food icon
+                  label: Text(
+                    'Order Now',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    iconColor: Color(0xFFFF4500), // Vibrant orange background
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30), // Rounded button
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      Widget _buildGoFoods() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15), // More rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            offset: Offset(0, 4),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Image.asset(
+                'images/thailand.png', // Ganti dengan path gambar Anda
+                height: 150, // Larger image for better visibility
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(height: 15), // Adjusted space between image and title
+
+            // Title/Heading with shadow for better visibility
+            Text(
+              'Delicious Thailand Deals!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF333333),
+                shadows: [
+                  Shadow(
+                    blurRadius: 5,
+                    color: Colors.black.withOpacity(0.3),
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 10),
+
+            // Description
+            Text(
+              'Explore exciting discounts and popular menus near you. Order now and enjoy!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Color(0xFF555555),
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // Button with icon and improved design
+            ElevatedButton.icon(
+              onPressed: () {
+                // Handle button press (e.g., navigate to another page)
+              },
+              icon: Icon(Icons.food_bank, color: Colors.white), // Added food icon
+              label: Text(
+                'Order Now',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isActive ? Colors.white :Color.fromARGB(255, 5, 14, 61),
                 ),
               ),
-            );
-          }
-          }
+              style: ElevatedButton.styleFrom(
+                iconColor: Color(0xFFFF4500), // Vibrant orange background
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30), // Rounded button
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+
+
+        //     Widget _buildCategory(String icon, String label) {
+        //       return Column(
+        //         children: [
+        //           Container(
+        //             padding: EdgeInsets.all(10),
+        //             decoration: BoxDecoration(
+        //               color: Color(0xFFF8F8F8),
+        //               borderRadius: BorderRadius.circular(50),
+        //               boxShadow: [
+        //                 BoxShadow(
+        //                   color: Colors.black.withOpacity(0.1),
+        //                   blurRadius: 8,
+        //                   offset: Offset(0, 2),
+        //                 ),
+        //               ],
+        //             ),
+        //             child: Text(
+        //               icon,
+        //               style: TextStyle(fontSize: 24),
+        //             ),
+        //           ),
+        //           SizedBox(height: 5),
+        //           Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color:Color.fromARGB(255, 5, 14, 61))),
+        //         ],
+        //       );
+        //     }
+
+        //     // Make sure this method is defined in the same class
+        //   Widget _buildFilter(String label, {required bool isActive}) {
+        //     return Container(
+        //       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        //       decoration: BoxDecoration(
+        //         color: isActive ? Color.fromARGB(255, 5, 14, 61) : Colors.transparent,
+        //         borderRadius: BorderRadius.circular(30),
+        //       ),
+        //       child: Text(
+        //         label,
+        //         style: TextStyle(
+        //           fontSize: 14,
+        //           fontWeight: FontWeight.bold,
+        //           color: isActive ? Colors.white :Color.fromARGB(255, 5, 14, 61),
+        //         ),
+        //       ),
+        //     );
+        //   }
+          
+         }
