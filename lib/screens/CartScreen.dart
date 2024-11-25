@@ -87,7 +87,7 @@ class _CartScreenState extends State<CartScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.green,
+                color: Colors.black,
               ),
             ),
             SizedBox(height: 16),
@@ -103,7 +103,7 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total Pesanan', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(formatCurrency(calculateTotal()), style: TextStyle(color: Colors.green)),
+                Text(formatCurrency(calculateTotal()), style: TextStyle(color: Colors.black)),
               ],
             ),
             if (notes.isNotEmpty) ...[
@@ -125,12 +125,12 @@ class _CartScreenState extends State<CartScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Pesanan berhasil dibuat!'),
-                    backgroundColor: Colors.green,
+                    backgroundColor: Color.fromARGB(255, 5, 14, 61),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Color.fromARGB(255, 5, 14, 61),
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -264,7 +264,7 @@ class _CartScreenState extends State<CartScreen> {
                                 Text(
                                   formatCurrency(item["price"]),
                                   style: TextStyle(
-                                    color: Colors.green,
+                                    color: Color.fromARGB(255, 5, 14, 61),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -274,7 +274,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.green[50],
+                            color: Colors.blue[50],
                             borderRadius: BorderRadius.only(
                               topRight: Radius.circular(12),
                               bottomRight: Radius.circular(12),
@@ -283,7 +283,7 @@ class _CartScreenState extends State<CartScreen> {
                           child: Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.remove_circle_outline, color: Colors.green),
+                                icon: Icon(Icons.remove_circle_outline, color: Color.fromARGB(255, 5, 14, 61),),
                                 onPressed: () => updateQuantity(index, -1),
                               ),
                               Text(
@@ -294,7 +294,7 @@ class _CartScreenState extends State<CartScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.add_circle_outline, color: Colors.green),
+                                icon: Icon(Icons.add_circle_outline, color: Color.fromARGB(255, 5, 14, 61),),
                                 onPressed: () => updateQuantity(index, 1),
                               ),
                             ],
@@ -310,13 +310,13 @@ class _CartScreenState extends State<CartScreen> {
                   decoration: InputDecoration(
                     labelText: 'Nama Penerima',
                     hintText: 'Masukkan nama Anda',
-                    prefixIcon: Icon(Icons.person, color: Colors.green),
+                    prefixIcon: Icon(Icons.person, color: Color.fromARGB(255, 5, 14, 61),),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.green, width: 2),
+                      borderSide: BorderSide(color: Color.fromARGB(255, 5, 14, 61), width: 2),
                     ),
                   ),
                 ),
@@ -326,13 +326,13 @@ class _CartScreenState extends State<CartScreen> {
                   decoration: InputDecoration(
                     labelText: 'Catatan Pesanan',
                     hintText: 'Tambahkan catatan (opsional)',
-                    prefixIcon: Icon(Icons.notes, color: Colors.green),
+                    prefixIcon: Icon(Icons.notes, color: Color.fromARGB(255, 5, 14, 61), ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.green, width: 2),
+                      borderSide: BorderSide(color: Color.fromARGB(255, 5, 14, 61), width: 2),
                     ),
                   ),
                 ),
@@ -371,7 +371,7 @@ class _CartScreenState extends State<CartScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
-                          color: Colors.green,
+                          color: Color.fromARGB(255, 5, 14, 61),
                         ),
                       ),
                     ],
@@ -379,7 +379,7 @@ class _CartScreenState extends State<CartScreen> {
                   ElevatedButton(
                     onPressed: () => checkout(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Color.fromARGB(255, 5, 14, 61), 
                       padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
