@@ -4,7 +4,7 @@ import 'package:pos2_flutter/screens/bottomnav.dart';
 import 'package:pos2_flutter/screens/home.dart';
 import 'package:pos2_flutter/screens/signup_screen.dart';
 import 'package:pos2_flutter/screens/forget_password_screen.dart'; // Import ForgetPasswordScreen
-import 'package:pos2_flutter/services/auth_api.dart';
+import 'package:pos2_flutter/services/auth_api.dart'; // Import BottomNav
 import '../theme/theme.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -17,6 +17,19 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   bool rememberPassword = true;
+
+  // Variabel untuk email dan password
+  String email = '';
+  String password = '';
+
+  // Fungsi untuk handle login dengan Google
+  void _signUpWithGoogle() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Google Sign-In is not implemented yet!'),
+      ),
+    );
+  }
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthApi _authApi = AuthApi();
@@ -78,6 +91,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           controller: _passwordController,
                           obscureText: true,
                           obscuringCharacter: '*',
+                          onChanged: (value) {
+                            password = value;
+                          },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter Password';
@@ -161,55 +177,62 @@ class _SignInScreenState extends State<SignInScreen> {
                                 }
                               }
                             },
-                            child: const Text('Sign in'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                  255, 13, 56, 92), // Dark blue color
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: const Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white, // White font color
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(
-                          height: 25.0,
+                          height: 30.0,
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Divider(
-                                thickness: 0.7,
-                                color: Colors.grey.withOpacity(0.5),
-                              ),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: 0,
-                                horizontal: 10,
-                              ),
-                              child: Text(
-                                'Sign in with',
-                                style: TextStyle(
-                                  color: Colors.black45,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Divider(
-                                thickness: 0.7,
-                                color: Colors.grey.withOpacity(0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 25.0,
-                        ),
+                        // Sign up social media logos
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Logo(Logos.facebook_f),
-                            Logo(Logos.twitter),
-                            Logo(Logos.google),
-                            Logo(Logos.apple),
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Facebook Sign-In not implemented yet!'),
+                                  ),
+                                );
+                              },
+                              child: Logo(Logos.facebook_f),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Twitter Sign-In not implemented yet!'),
+                                  ),
+                                );
+                              },
+                              child: Logo(Logos.twitter),
+                            ),
+                            GestureDetector(
+                              onTap: _signUpWithGoogle,
+                              child: Logo(
+                                  Logos.google), // Replace with Google icon
+                            ),
                           ],
                         ),
                         const SizedBox(
-                          height: 30.0,
+                          height: 25.0,
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

@@ -1,162 +1,132 @@
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user_model.dart';
-import '../services/auth_api.dart'; // Import AuthApi
-import 'order_history.dart';
-import 'my_address_page.dart';
-import 'settings_page.dart';
-import 'account_page.dart';
-import 'payment_methods_page.dart';
+import 'package:pos2_flutter/screens/account_page.dart';
+import 'package:pos2_flutter/screens/my_address_page.dart';
+import 'package:pos2_flutter/screens/settings_page.dart';
 import 'package:pos2_flutter/screens/welcome_screen.dart';
 
-class Profile extends StatefulWidget {
-  const Profile({super.key});
+class Profile2 extends StatelessWidget {
+  String? image = "images/siam1.png";
+  String? name = "Miranda West";
+  String? quote = "Enjoy the taste of Thailand at its finest.";
+  bool isPremium = true;
 
-  @override
-  State<Profile> createState() => _ProfileState();
-}
+  Profile2({super.key});
 
-class _ProfileState extends State<Profile> {
-  User? user; // Data user akan disimpan di sini
-  bool isLoading = true; // Indikator loading saat data dimuat
-  final AuthApi authApi = AuthApi(); // Instance AuthApi untuk pengambilan data
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserData();
-  }
-
-  Future<void> _fetchUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('auth_token'); // Ambil token dari SharedPreferences
-
-    if (token != null) {
-      final fetchedUser = await authApi.getUser(token); // Panggil API untuk mendapatkan data user
-      if (fetchedUser != null) {
-        setState(() {
-          user = fetchedUser;
-          isLoading = false;
-        });
-      } else {
-        // Jika token tidak valid atau API gagal
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      // Jika tidak ada token
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+  get context => null; // Default address
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator()) // Tampilkan loading spinner
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-                  _buildUserInfo(),
-                  const SizedBox(height: 20),
-                  _buildProfileOptions(context),
-                  const SizedBox(height: 20),
-                  _buildLogoutButton(),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 20),
+            _buildUserInfo(),
+            const SizedBox(height: 20),
+            _buildProfileOptions(context),
+            const SizedBox(height: 20),
+            _buildLogoutButton(),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildHeader() {
-  return Stack(
-    children: [
-      Image.asset(
-        "images/bgfp.png", // Background image path
-        height: 300,
-        width: double.infinity,
-        fit: BoxFit.cover,
-      ),
-      Positioned(
-        top: 40,
-        right: 20,
-        child: IconButton(
-          icon: const Icon(Icons.settings_outlined, color: Colors.white),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsPage()),
-            );
-          },
+    return Stack(
+      children: [
+        Image.asset(
+          "images/bgfp.png", // Background image path
+          height: 300,
+          width: double.infinity,
+          fit: BoxFit.cover,
         ),
-      ),
-      Positioned(
-        top: 40,
-        left: 20,
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      Positioned(
-        bottom: 40,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: GestureDetector(
-            onTap: () {
-              // Aksi yang akan dilakukan saat gambar profil diketuk
+        Positioned(
+          top: 40,
+          right: 20,
+          child: IconButton(
+            icon: Icon(Icons.settings_outlined, color: Colors.white),
+            onPressed: () {
+              // Navigate to settings
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AccountPage()),
+                MaterialPageRoute(builder: (context) => SettingsPage()),
               );
             },
+          ),
+        ),
+        Positioned(
+          top: 40,
+          left: 20,
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        Positioned(
+          bottom: 40,
+          left: 0,
+          right: 0,
+          child: Center(
             child: CircleAvatar(
               radius: 80,
-              backgroundImage: user?.photo != null
-                  ? NetworkImage(user!.photo!)
-                  : const AssetImage("images/siam1.png") as ImageProvider,
+              backgroundImage: AssetImage(image!),
               backgroundColor: Colors.white,
             ),
           ),
         ),
-      ),
-    ],
-  );
-}
-
+      ],
+    );
+  }
 
   Widget _buildUserInfo() {
     return Column(
       children: [
         Text(
-          user?.name ?? "Guest User",
-          style: const TextStyle(
+          name!,
+          style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.black, // Font color black
           ),
         ),
         const SizedBox(height: 10),
         Text(
-          user?.email ?? "No Email Available",
+          quote!,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             color: Colors.black87,
           ),
         ),
+        const SizedBox(height: 10),
+        isPremium
+            ? Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.amber[700],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 5),
+                    Text(
+                      "Admin",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : SizedBox.shrink(),
       ],
     );
   }
@@ -165,70 +135,45 @@ class _ProfileState extends State<Profile> {
     return Column(
       children: [
         _buildProfileOption(
-          icon: Icons.location_on_outlined,
-          text: "My Address",
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MyAddressPage()),
-          ),
-        ),
-        _buildProfileOption(
-          icon: Icons.person_outline,
-          text: "Account",
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AccountPage()),
-          ),
-        ),
-        _buildProfileOption(
-          icon: Icons.history_outlined,
-          text: "Order History",
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const OrderHistory()),
-          ),
-        ),
-      ],
-    );
-  }
+            icon: Icons.location_on_outlined,
+            text: "My Address",
+            onTap: () async {
+              // Navigate to Address Page and wait for the updated address
+              final updatedAddress = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyAddressPage()),
+              );
 
-  Widget _buildLogoutButton() {
-    return GestureDetector(
-      onTap: () {
-        // Logout action
-        SharedPreferences.getInstance().then((prefs) {
-          prefs.clear(); // Hapus semua data dari SharedPreferences
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-          );
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.redAccent,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.redAccent.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: const Center(
-          child: Text(
-            "Logout",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
+              // If an updated address is returned, update the profile address
+              if (updatedAddress != null) {
+                setState(() {});
+              }
+            }),
+        _buildProfileOption(
+            icon: Icons.person_outline,
+            text: "Account",
+            onTap: () {
+              // Navigate to Account Page to edit profile data
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AccountPage()),
+              );
+            }),
+        _buildProfileOption(
+            icon: Icons.notifications_outlined,
+            text: "Notifications",
+            onTap: () {
+              // Show notifications settings as a floating modal
+              _showNotificationsDialog(context);
+            }),
+        _buildProfileOption(
+            icon: Icons.language_outlined,
+            text: "Language",
+            onTap: () {
+              // Show language settings as a floating modal
+              _showLanguageDialog(context);
+            }),
+      ],
     );
   }
 
@@ -250,7 +195,7 @@ class _ProfileState extends State<Profile> {
               color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 10,
-              offset: const Offset(0, 5),
+              offset: Offset(0, 5),
             ),
           ],
         ),
@@ -263,7 +208,7 @@ class _ProfileState extends State<Profile> {
                 const SizedBox(width: 20),
                 Text(
                   text,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -424,4 +369,6 @@ class _ProfileState extends State<Profile> {
       },
     );
   }
+
+  void setState(Null Function() param0) {}
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos2_flutter/screens/payment.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -48,6 +49,31 @@ class _CartScreenState extends State<CartScreen> {
       widget.onCartUpdated(_cart);
     });
   }
+
+  void proceedToPayment(BuildContext context) {
+  final name = _nameController.text.trim();
+  if (name.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Masukkan nama Anda terlebih dahulu')),
+    );
+    return;
+  }
+
+  final totalAmount = calculateTotal();
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PaymentPage(
+        transactionId: "ORDER-${DateTime.now().millisecondsSinceEpoch}",
+        amount: totalAmount,
+        customerName: name,
+        customerEmail: "email@example.com", // Sesuaikan email atau ambil dari input pengguna
+        cart: _cart,
+      ),
+    ),
+  );
+}
+
 
   void clearCart() {
     setState(() {

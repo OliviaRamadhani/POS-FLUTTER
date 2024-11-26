@@ -102,6 +102,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           fit: BoxFit.cover,
                         ),
                         const SizedBox(height: 1.0),
+                        const SizedBox(height: 1.0),
                         // Full Name TextField
                         TextFormField(
                           controller: _fullNameController,
@@ -224,6 +225,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 25.0),
                         const SizedBox(height: 25.0),
                         // Sign up button
                         SizedBox(
