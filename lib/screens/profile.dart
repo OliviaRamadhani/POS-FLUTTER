@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'order_history.dart'; // Add this line if the page is in a separate file
 import 'my_address_page.dart'; // Import the MyAddressPage
 import 'settings_page.dart'; // Import SettingsPage
-import 'account_page.dart';   // Import AccountPage
+import 'account_page.dart'; // Import AccountPage
 import 'payment_methods_page.dart'; // Import PaymentMethodsPage
-
-import 'package:pos2_flutter/widgets/support_widget.dart';
+import 'package:pos2_flutter/screens/welcome_screen.dart'; // Import WelcomeScreen
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -274,6 +273,15 @@ class _ProfileState extends State<Profile> {
                   onPressed: () {
                     Navigator.of(context).pop();
                     // Add logout action here
+
+                    // Navigate to WelcomeScreen after logging out
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            WelcomeScreen(), // Navigate to WelcomeScreen
+                      ),
+                    );
                   },
                   child: Text('Logout'),
                 ),
@@ -286,11 +294,11 @@ class _ProfileState extends State<Profile> {
         margin: const EdgeInsets.symmetric(horizontal: 20),
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.redAccent,
+          color: const Color.fromARGB(255, 255, 7, 7),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.redAccent.withOpacity(0.3),
+              color: const Color.fromRGBO(199, 43, 43, 1).withOpacity(0.3),
               blurRadius: 10,
               offset: Offset(0, 5),
             ),
@@ -370,15 +378,18 @@ class _ProfileState extends State<Profile> {
                 SizedBox(height: 20),
                 ListTile(
                   title: Text("English"),
-                  trailing: Radio(value: 1, groupValue: 1, onChanged: (value) {}),
+                  trailing:
+                      Radio(value: 1, groupValue: 1, onChanged: (value) {}),
                 ),
                 ListTile(
                   title: Text("Thai"),
-                  trailing: Radio(value: 2, groupValue: 1, onChanged: (value) {}),
+                  trailing:
+                      Radio(value: 2, groupValue: 1, onChanged: (value) {}),
                 ),
                 ListTile(
                   title: Text("Spanish"),
-                  trailing: Radio(value: 3, groupValue: 1, onChanged: (value) {}),
+                  trailing:
+                      Radio(value: 3, groupValue: 1, onChanged: (value) {}),
                 ),
               ],
             ),

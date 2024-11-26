@@ -41,6 +41,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
         padding: const EdgeInsets.all(30.0),
         child: Center(
           child: Card(
+            color: Colors.white, // Set the card color to white
             elevation: 10, // Adding shadow to card for a modern look
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
@@ -55,11 +56,11 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   children: [
                     // Heading Text
                     const Text(
-                      'Reset Your Password',
+                      'Reset Password',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 33, 37, 70),
+                        color: Color.fromARGB(255, 33, 37, 70),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -81,11 +82,11 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         labelText: 'Email Address',
                         labelStyle: const TextStyle(
                           fontSize: 18,
-                          color: Colors.teal,
+                          color: Color.fromARGB(255, 13, 56, 92),
                         ),
                         prefixIcon: const Icon(
                           Icons.email,
-                          color: Colors.teal,
+                          color: Color.fromARGB(255, 13, 56, 92),
                         ),
                         filled: true,
                         fillColor: Colors.grey[100],
@@ -117,16 +118,19 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                       child: ElevatedButton(
                         onPressed: _submit,
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                              255, 13, 56, 92), // Dark blue color
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          // Text color
                         ),
                         child: const Text(
                           'Send Reset Link',
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white), // White text
                         ),
                       ),
                     ),
@@ -142,7 +146,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                       child: Text(
                         'Back',
                         style: TextStyle(
-                          color: Colors.teal[700],
+                          color: const Color.fromARGB(255, 11, 57, 87),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
