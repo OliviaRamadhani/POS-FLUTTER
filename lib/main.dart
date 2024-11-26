@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:pos2_flutter/screens/welcome_screen.dart';
 import 'package:pos2_flutter/theme/theme.dart';
 import 'package:pos2_flutter/screens/bottomnav.dart';

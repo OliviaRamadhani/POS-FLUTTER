@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 
-class DashboardScreenextends StatefulWidget {
+class DashboardScreen extends StatefulWidget {
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -57,13 +57,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _statCard('Total Sales', formatCurrency(totalSales), Icons.attach_money),
-                _statCard('Total Reservations', totalReservations.toString(), Icons.box),
+                _statCard('Total Reservations', totalReservations.toString(), Icons.event),
                 _statCard('Total Customers', totalCustomers.toString(), Icons.people),
               ],
             ),
             SizedBox(height: 20),
             // Grafik
-            Text('Customer Over Time', style: Theme.of(context).textTheme.headline6),
+            Text('Customer Over Time', style: Theme.of(context).textTheme.titleLarge),
             SizedBox(height: 10),
             Container(
               height: 200,

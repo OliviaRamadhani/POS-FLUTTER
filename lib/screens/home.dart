@@ -5,11 +5,11 @@ import 'package:pos2_flutter/screens/inventori/produk/index.dart';
 import 'package:pos2_flutter/screens/profile.dart';
 import 'package:pos2_flutter/screens/signin_screen.dart';
 import 'package:pos2_flutter/widgets/support_widget.dart';
-import 'package:pos2_flutter/screens/dashboard/dashboard_screen.dart';
+import '../screens/dashboard/dashboard_screen.dart';
 import '../services/auth_api.dart';
 import 'package:pos2_flutter/models/user_model.dart';
 import 'dart:async'; // Import for Timer
-      import 'package:pos2_flutter/screens/recipes.dart';
+import 'package:pos2_flutter/screens/recipes.dart';
 
 final AuthApi _authApi = AuthApi(); // Inisialisasi AuthApi
       
