@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pos2_flutter/screens/menu.dart';
 import 'package:pos2_flutter/screens/home.dart';
 import 'package:pos2_flutter/screens/profile.dart';
+import 'package:pos2_flutter/screens/reservation.dart'; // Tambahkan ini
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,9 +14,11 @@ class BottomNav extends StatefulWidget {
 
 class _BottomNavState extends State<BottomNav> {
   late List<Widget> pages;
+
   late Home HomePage;
   late Order order;
   late Profile profile;
+  late Reservation reservation; // Tambahkan halaman reservasi
   int currentTabIndex = 0;
 
   @override
@@ -23,7 +26,9 @@ class _BottomNavState extends State<BottomNav> {
     HomePage = Home();
     order = Order();
     profile = Profile();
-    pages = [HomePage, order, profile];
+    reservation = Reservation(); // Tambahkan ini
+    pages = [HomePage, order, reservation, profile]; // Tambahkan reservasi ke daftar halaman
+
     super.initState();
   }
 
@@ -43,6 +48,7 @@ class _BottomNavState extends State<BottomNav> {
         items: [
           Icon(Icons.home_outlined, color: Colors.white),
           Icon(Icons.shopping_bag_outlined, color: Colors.white),
+          Icon(Icons.calendar_today_outlined, color: Colors.white), // Ikon reservasi
           Icon(Icons.person_outlined, color: Colors.white),
         ],
       ),

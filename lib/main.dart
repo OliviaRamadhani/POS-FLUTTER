@@ -9,6 +9,7 @@ import 'package:pos2_flutter/screens/onboarding.dart';
 import 'package:pos2_flutter/screens/product_detail.dart';
 import 'package:pos2_flutter/screens/splash_screen.dart';
 import 'package:pos2_flutter/screens/recipes.dart';
+import 'package:pos2_flutter/screens/payment.dart';
 
 
 
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-       home:  const SplashScreen(), // Splash Screen sebagai halaman pertama
+       home: const SplashScreen()
     );
   }
 }
