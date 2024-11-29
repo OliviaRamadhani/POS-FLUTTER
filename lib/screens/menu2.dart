@@ -1,4 +1,9 @@
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../services/product_api.dart';
+import '../models/product_model.dart';
+import 'package:logger/logger.dart';  // Logger for debugging
 
 void main() {
   runApp(const MyApp());
@@ -24,363 +29,146 @@ class Menu2 extends StatefulWidget {
 }
 
 class _Menu2State extends State<Menu2> {
-  final List<Map<String, dynamic>> menus = [
-    {
-      "name": "Pizza",
-      "price": "\$12.00",
-      "status": "Available",
-      "description": "A delicious cheese pizza with fresh toppings.",
-      "category": "Food"
-    },
-    {
-      "name": "Burger",
-      "price": "\$8.50",
-      "status": "Out of Stock",
-      "description": "A tasty beef burger with lettuce and cheese.",
-      "category": "Food"
-    },
-    {
-      "name": "Pasta",
-      "price": "\$10.00",
-      "status": "Available",
-      "description": "Spaghetti with a rich tomato sauce.",
-      "category": "Food"
-    },
-    {
-      "name": "Coke",
-      "price": "\$2.50",
-      "status": "Available",
-      "description": "A refreshing soda.",
-      "category": "Drink"
-    },
-    {
-      "name": "Ice Cream",
-      "price": "\$5.00",
-      "status": "Available",
-      "description": "A sweet and creamy vanilla ice cream.",
-      "category": "Dessert"
-    },
-  ];
+  final ProductApi _productApi = ProductApi();
+  List<Product> products = [];
+  bool isLoading = true;
 
-  // Controllers for the new menu form
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController imageUrlController = TextEditingController();
+  String selectedCategory = 'Food';
 
-  String selectedCategory = 'Food'; // Default category
+  File? imageFile;
+  final ImagePicker _picker = ImagePicker();
+  final Logger logger = Logger();  // For logging
 
-  void _addMenu() {
+  @override
+  void initState() {
+    super.initState();
+    _fetchProducts();
+  }
+
+  Future<void> _fetchProducts() async {
+    try {
+      setState(() => isLoading = true);
+      products = await _productApi.fetchProducts();
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      logger.e('Error fetching products: $e');
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _addProduct() async {
+    if (nameController.text.isEmpty || priceController.text.isEmpty || selectedCategory.isEmpty) {
+      logger.e('Please fill all required fields');
+      return;
+    }
+
+    final newProduct = Product(
+      id: 0,
+      uuid: '',
+      name: nameController.text,
+      description: descriptionController.text,
+      price: double.parse(priceController.text),
+      imageUrl: imageUrlController.text,
+      isSoldOut: false,
+      category: selectedCategory,
+    );
+
+    try {
+      final response = await _productApi.createProduct(newProduct, imageFile: imageFile);
+
+      _fetchProducts();
+    } catch (e) {
+      logger.e('Error adding product: $e');
+    }
+  }
+
+  Future<void> _deleteProduct(int id) async {
+    try {
+      await _productApi.deleteProduct(id);
+      _fetchProducts();
+    } catch (e) {
+      logger.e('Error deleting product: $e');
+    }
+  }
+
+  Future<void> _toggleSoldOut(Product product) async {
+    try {
+      await _productApi.toggleSoldOut(product.id);
+      _fetchProducts();
+    } catch (e) {
+      logger.e('Error toggling sold-out status: $e');
+    }
+  }
+
+  // Handle image picker
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showAddProductDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
-            "Add New Menu",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
+          title: const Text("Add New Product"),
+          content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Menu Name",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: priceController,
-                  decoration: const InputDecoration(
-                    labelText: "Price",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: "Description",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 16),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                DropdownButton<String>(
+                TextField(controller: nameController, decoration: const InputDecoration(labelText: "Product Name")),
+                TextField(controller: priceController, decoration: const InputDecoration(labelText: "Price")),
+                TextField(controller: descriptionController, decoration: const InputDecoration(labelText: "Description")),
+                DropdownButtonFormField<String>(
                   value: selectedCategory,
-                  onChanged: (String? newValue) {
+                  onChanged: (value) {
                     setState(() {
-                      selectedCategory = newValue!;
+                      selectedCategory = value!;
                     });
                   },
-                  items: <String>['Food', 'Drink', 'Dessert']
-                      .map<DropdownMenuItem<String>>((String value) {
+                  items: ['Food', 'Drink', 'Dessert'].map((value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
                     );
                   }).toList(),
                 ),
+                // Image picker button
+                TextButton(
+                  onPressed: _pickImage,
+                  child: const Text('Pick Image'),
+                ),
+                imageFile != null
+                    ? Image.file(imageFile!, width: 100, height: 100, fit: BoxFit.cover)
+                    : const SizedBox(),
               ],
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                setState(() {
-                  menus.add({
-                    "name": nameController.text,
-                    "price": priceController.text,
-                    "status": "Available",
-                    "description": descriptionController.text,
-                    "category": selectedCategory,
-                  });
-                });
-                Navigator.pop(context);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor:
-                    Colors.white, // Use 'foregroundColor' instead of 'primary'
-                backgroundColor: Colors.blue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: const Text(
-                "Add Menu",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor:
-                    Colors.black, // Use 'foregroundColor' instead of 'primary'
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: const Text(
-                "Cancel",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteMenu(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Are you sure?'),
-          content: const Text('Do you want to delete this menu item?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  menus.removeAt(index); // Delete the menu item
-                });
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _viewMenu(int index) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                menus[index]['name'],
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Price: ${menus[index]['price']}",
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Status: ${menus[index]['status']}",
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Category: ${menus[index]['category']}",
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Description: ${menus[index]['description']}",
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
+              onPressed: () async {
+                await _addProduct();  // Wait until product is added
+                if (mounted) {
                   Navigator.pop(context);
-                  _editMenu(index); // Open the Edit dialog
-                },
-                child: const Text("Edit Menu"),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _editMenu(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final TextEditingController nameController =
-            TextEditingController(text: menus[index]['name']);
-        final TextEditingController priceController =
-            TextEditingController(text: menus[index]['price']);
-        final TextEditingController descriptionController =
-            TextEditingController(text: menus[index]['description']);
-
-        String category = menus[index]['category'];
-
-        return AlertDialog(
-          title: const Text(
-            "Edit Menu",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Menu Name",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: priceController,
-                  decoration: const InputDecoration(
-                    labelText: "Price",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: "Description",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 16),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                DropdownButton<String>(
-                  value: category,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      category = newValue!;
-                    });
-                  },
-                  items: <String>['Food', 'Drink', 'Dessert']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  menus[index] = {
-                    "name": nameController.text,
-                    "price": priceController.text,
-                    "status": menus[index]['status'],
-                    "description": descriptionController.text,
-                    "category": category,
-                  };
-                });
-                Navigator.pop(context);
+                }
               },
-              style: TextButton.styleFrom(
-                foregroundColor:
-                    Colors.white, // Use 'foregroundColor' instead of 'primary'
-                backgroundColor: Colors.blue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: const Text(
-                "Save Changes",
-                style: TextStyle(fontSize: 16),
-              ),
+              child: const Text("Add"),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor:
-                    Colors.black, // Use 'foregroundColor' instead of 'primary'
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: const Text(
-                "Cancel",
-                style: TextStyle(fontSize: 16),
-              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
             ),
           ],
         );
@@ -391,44 +179,38 @@ class _Menu2State extends State<Menu2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu List'),
-      ),
-      body: ListView.builder(
-        itemCount: menus.length,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                menus[index]['name'],
-                style: const TextStyle(fontSize: 18),
-              ),
-              subtitle: Text(menus[index]['price']),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      _viewMenu(index);
-                    },
-                    icon: const Icon(Icons.visibility),
+      appBar: AppBar(title: const Text('Product List')),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return ListTile(
+                  title: Text(product.name),
+                  subtitle: Text("Price: ${product.price}"),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(product.isSoldOut ? Icons.check_box : Icons.check_box_outline_blank),
+                        onPressed: () async {
+                          await _toggleSoldOut(product);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          await _deleteProduct(product.id);
+                        },
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      _deleteMenu(index);
-                    },
-                    icon: const Icon(Icons.delete),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addMenu,
+        onPressed: _showAddProductDialog,
         child: const Icon(Icons.add),
       ),
     );

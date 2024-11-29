@@ -30,6 +30,7 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
     );
   }
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthApi _authApi = AuthApi();
@@ -165,10 +166,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Login Success')),
                                   );
-                                  // Arahkan ke halaman berikutnya
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => BottomNav(isAdmin: true,)), 
+                                  // Arahkan ke halaman BottomNav dengan mengirimkan role
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => BottomNav(user: user)),
                                   ); 
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -178,8 +179,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                  255, 13, 56, 92), // Dark blue color
+                              backgroundColor: const Color.fromARGB(255, 13, 56, 92), // Dark blue color
                               padding: const EdgeInsets.symmetric(vertical: 15),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -195,9 +195,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 30.0,
-                        ),
+                        const SizedBox(height: 30.0),
                         // Sign up social media logos
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -231,9 +229,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 25.0,
-                        ),
+                        const SizedBox(height: 25.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -262,9 +258,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
+                        const SizedBox(height: 20.0),
                       ],
                     ),
                   ),

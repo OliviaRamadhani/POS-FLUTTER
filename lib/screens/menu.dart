@@ -10,7 +10,7 @@
     }
 
     class _OrderState extends State<Order> {
-      final String apiUrl = "http://192.168.2.139:8000/api/inventori/produk";
+      final String apiUrl = "http://192.168.2.102:8000/api/inventori/produk";
       List<Map<String, dynamic>> cart = [];
       List<Map<String, dynamic>> menuItems = [];
       List<String> categories = ['All'];

@@ -1,22 +1,17 @@
-      import 'package:flutter/material.dart';
-      import 'package:google_maps_flutter/google_maps_flutter.dart';
-      import 'package:pos2_flutter/screens/inventori/produk/index.dart';
-      import 'package:pos2_flutter/screens/signin_screen.dart';
-      import '../screens/dashboard/dashboard_screen.dart';
-      import '../services/auth_api.dart';
-      import '../screens/menu.dart';
-      import 'package:pos2_flutter/models/user_model.dart';
-      import 'package:pos2_flutter/widgets/support_widget.dart';
-      import 'dart:async'; // Import for Timer
-      import 'package:pos2_flutter/screens/recipes.dart';
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pos2_flutter/screens/bottomnav.dart';
+import 'package:pos2_flutter/screens/signin_screen.dart';
+import 'package:pos2_flutter/widgets/support_widget.dart';
+import 'dart:async'; // Import for Timer
+import 'package:pos2_flutter/screens/recipes.dart';
+import 'package:pos2_flutter/screens/menu.dart';
+import 'package:pos2_flutter/screens/profile.dart';
+void main() {
+  runApp(MyApp());
+}
 
-      void main() {
-        runApp(MyApp());
-      }
-
-      final AuthApi _authApi = AuthApi();
-      
-      class RestaurantCard extends StatelessWidget {
+class RestaurantCard extends StatelessWidget {
   final String imageUrl;
   final String title;
   final IconData icon;
@@ -75,168 +70,13 @@
     );
   }
 }
-        class MyApp extends StatelessWidget {
-          @override
-          Widget build(BuildContext context) {
-            return MaterialApp(
-              home: Home(),
-              debugShowCheckedModeBanner: false,
-            );
-          }
-        }
-
-
-     class MyDrawer extends StatefulWidget {
-      @override
-      _MyDrawerState createState() => _MyDrawerState();
-    }
-
-     class _MyDrawerState extends State<MyDrawer> {
-  User? user;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUser();
-  }
-
-  Future<void> _fetchUser() async {
-    try {
-      // Ambil token dari SharedPreferences
-      String? token = await _authApi.getToken();
-
-      if (token != null) {
-        // Panggil API untuk mendapatkan data pengguna
-        User? fetchedUser = await _authApi.getUser(token);
-        if (fetchedUser != null) {
-          setState(() {
-            user = fetchedUser;
-          });
-        }
-      }
-    } catch (e) {
-      print('Error fetching user: $e'); // Debugging log
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<void> logOut() async {
-    await _authApi.logout(); // Logout pengguna
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => SignInScreen()),
-    );
-  }
-
+// Main App
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 5, 14, 61),
-                  ),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: user?.photo != null
-                            ? Image.network(
-                                user!.photo!,
-                                height: 80,
-                                width: 80,
-                                fit: BoxFit.cover,
-                              )
-                            : Icon(Icons.person,
-                                size: 80, color: Colors.white),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        user?.name ?? 'Guest',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        user?.email ?? 'Please log in to access more features',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ),
-                ListTile(
-                  title: Text('Home'),
-                  leading: Icon(Icons.house_outlined),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => Home()),
-                    );
-                  },
-                ),
-                if (user?.role.name == 'admin') ...[
-                   ListTile(
-                    title: Text('Dashboard'),
-                    leading: Icon(Icons.graphic_eq_outlined),
-                    onTap: () {
-                      Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => DashboardScreen()),
-                      );
-                    },
-                  ),
-                  ExpansionTile(
-                    title: Text('Inventori'),
-                    leading: Icon(Icons.inventory_2_outlined),
-                    children: <Widget>[
-                      ListTile(
-                        title: Text('Produk'),
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Inventory()),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        title: Text('Laporan'),
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Inventory()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-                ListTile(
-                  title: Text('Settings'),
-                  leading: Icon(Icons.settings_outlined),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => Home()),
-                    );
-                  },
-                ),
-                ListTile(
-                  title: Text('Log Out'),
-                  leading: Icon(Icons.logout_outlined),
-                  onTap: logOut,
-                ),
-              ],
-            ),
+    return MaterialApp(
+      home: Home(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -447,21 +287,22 @@ void onOrderNowPressed() {
   }
 
 
+  
 
   Widget _buildCustomAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Color.fromARGB(255, 5, 14, 61),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
         ),
       ),
       flexibleSpace: Padding(
-        padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
+        padding: const EdgeInsets.only( left: 20, right: 20),
         child: Column(
           children: [
-            SizedBox(height: 50),
+            SizedBox(height: 55),
             _buildSearchBar(),
             SizedBox(height: 15),
             Row(
@@ -494,16 +335,6 @@ void onOrderNowPressed() {
             ),
           ],
         ),
-      ),
-      leading: Builder(
-        builder: (BuildContext context) {
-          return IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          );
-        },
       ),
     );
   }
@@ -749,7 +580,7 @@ Widget _buildChefList() {
                 ),
               ),
               SizedBox(height: 8), // Add space between the image and the name
-              // chef yang ditempatkan di bawah gambar
+              // Nama chef yang ditempatkan di bawah gambar
               Text(
                 chefs[index]['name'] as String, // Cast to String
                 textAlign: TextAlign.center,

@@ -72,7 +72,8 @@ class AuthApi {
 
   Future<void> submitCredentials(String name, String email, String phone) async {
     final response = await http.post(
-      Uri.parse('$apiUrl/register/get/email/otp'),
+      Uri.parse('$apiUrl/register'),
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       body: {'name': name, 'email': email, 'phone': phone},
     );
     if (response.statusCode != 200) {

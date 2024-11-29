@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/services/transaction_report_api.dart'; // Import API
-import 'package:pos2_flutter/models/transaction_report_model.dart'; // Import Model
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // Untuk konversi data JSON
 
 class TransactionReportPage extends StatefulWidget {
   @override
@@ -8,16 +8,28 @@ class TransactionReportPage extends StatefulWidget {
 }
 
 class _TransactionReportPageState extends State<TransactionReportPage> {
-  late Future<List<TransactionReport>> futureReports;
+  late Future<List<Map<String, dynamic>>> futureReports;
 
   @override
   void initState() {
     super.initState();
-    futureReports = TransactionReportApi().fetchTransactionReports(); // Mengambil laporan transaksi
+    futureReports = fetchTransactionReports(); // Mengambil laporan transaksi
+  }
+
+  // Mengambil data laporan transaksi langsung dari API
+  Future<List<Map<String, dynamic>>> fetchTransactionReports() async {
+    final response = await http.get(Uri.parse('http://192.168.2.102:8000/api/inventori/laporan'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data); // Mengubah JSON menjadi List<Map>
+    } else {
+      throw Exception('Gagal memuat laporan transaksi');
+    }
   }
 
   // Menampilkan detail laporan
-  void _showReportDetail(TransactionReport report) {
+  void _showReportDetail(Map<String, dynamic> report) {
     showDialog(
       context: context,
       builder: (context) {
@@ -27,11 +39,11 @@ class _TransactionReportPageState extends State<TransactionReportPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('ID: ${report.id}'),
-              Text('Pembelian ID: ${report.pembelianId}'),
-              Text('Status: ${report.status}'),
-              Text('Total Price: Rp ${report.totalPrice}'),
-              Text('Dibuat Pada: ${report.createdAt}'),
+              Text('ID: ${report['id']}'),
+              Text('Pembelian ID: ${report['pembelian_id']}'),
+              Text('Status: ${report['status']}'),
+              Text('Total Price: Rp ${report['total_price']}'),
+              Text('Dibuat Pada: ${report['created_at']}'),
             ],
           ),
           actions: [
@@ -44,7 +56,7 @@ class _TransactionReportPageState extends State<TransactionReportPage> {
             TextButton(
               onPressed: () {
                 // Aksi Hapus Laporan
-                _deleteReport(report.id);
+                _deleteReport(report['id']);
               },
               child: Text('Hapus'),
             ),
@@ -64,12 +76,17 @@ class _TransactionReportPageState extends State<TransactionReportPage> {
   // Menghapus laporan
   void _deleteReport(int id) async {
     try {
-      await TransactionReportApi().deleteTransactionReport(id);
-      setState(() {
-        futureReports = TransactionReportApi().fetchTransactionReports(); // Update data setelah dihapus
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Laporan berhasil dihapus')));
-      Navigator.pop(context); // Menutup dialog
+      final response = await http.delete(Uri.parse('http://192.168.2.102:8000/api/inventori/laporan/$id'));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          futureReports = fetchTransactionReports(); // Update data setelah dihapus
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Laporan berhasil dihapus')));
+        Navigator.pop(context); // Menutup dialog
+      } else {
+        throw Exception('Gagal menghapus laporan');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus laporan')));
     }
@@ -78,8 +95,13 @@ class _TransactionReportPageState extends State<TransactionReportPage> {
   // Mengekspor laporan ke Excel
   void _exportReport() async {
     try {
-      await TransactionReportApi().exportToExcel();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Laporan berhasil diekspor')));
+      final response = await http.get(Uri.parse('http://192.168.2.102:8000/api/inventori/laporan/export'));
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Laporan berhasil diekspor')));
+      } else {
+        throw Exception('Gagal mengekspor laporan');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal mengekspor laporan')));
     }
@@ -91,7 +113,7 @@ class _TransactionReportPageState extends State<TransactionReportPage> {
       appBar: AppBar(
         title: Text('Laporan Pembelian'),
       ),
-      body: FutureBuilder<List<TransactionReport>>(
+      body: FutureBuilder<List<Map<String, dynamic>>>(
         future: futureReports,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -106,15 +128,15 @@ class _TransactionReportPageState extends State<TransactionReportPage> {
             return Center(child: Text('Tidak ada laporan pembelian.'));
           }
 
-          List<TransactionReport> reports = snapshot.data!;
+          List<Map<String, dynamic>> reports = snapshot.data!;
 
           return ListView.builder(
             itemCount: reports.length,
             itemBuilder: (context, index) {
               final report = reports[index];
               return ListTile(
-                title: Text('Laporan Pembelian ID: ${report.pembelianId}'),
-                subtitle: Text('Total: Rp ${report.totalPrice}'),
+                title: Text('Laporan Pembelian ID: ${report['pembelian_id']}'),
+                subtitle: Text('Total: Rp ${report['total_price']}'),
                 onTap: () => _showReportDetail(report), // Menampilkan detail saat ditekan
               );
             },

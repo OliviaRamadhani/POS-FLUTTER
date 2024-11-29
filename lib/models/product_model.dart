@@ -1,47 +1,49 @@
 class Product {
-  final int? id;  // id bersifat opsional, bisa null
+  final int id;
   final String uuid;
   final String name;
-  final String? category;
-  final String description;
-  final String imageUrl;
-  final int price;
+  final String category;
+  final double price;
+  final String? description;
+  final String? imageUrl;
   bool isSoldOut;
 
   Product({
+    required this.id,
     required this.uuid,
     required this.name,
     required this.category,
-    required this.description,
-    required this.imageUrl,
     required this.price,
+    this.description,
+    this.imageUrl,
     required this.isSoldOut,
-    this.id, // id bersifat opsional di konstruktor
   });
 
+  // Convert JSON to Product object
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],  // id hanya diambil saat parsing JSON
+      id: json['id'],
       uuid: json['uuid'],
       name: json['name'],
       category: json['category'],
+      price: json['price'].toDouble(),
       description: json['description'],
       imageUrl: json['image_url'],
-      price: json['price'],
-      isSoldOut: json['is_sold_out'] == 1,
+      isSoldOut: json['is_sold_out'] == 0,
     );
   }
 
+  // Convert Product object to JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'uuid': uuid,
       'name': name,
       'category': category,
+      'price': price,
       'description': description,
       'image_url': imageUrl,
-      'price': price,
-      'is_sold_out': isSoldOut ? 1 : 0,
-      // id tidak perlu dikirim jika tidak diperlukan
+      'is_sold_out': isSoldOut,
     };
   }
 }

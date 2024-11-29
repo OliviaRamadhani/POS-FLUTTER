@@ -6,10 +6,11 @@ import 'package:pos2_flutter/screens/profile.dart';
 import 'package:pos2_flutter/screens/home2.dart';
 import 'package:pos2_flutter/screens/menu2.dart';
 import 'package:pos2_flutter/screens/profile2.dart';
+import '../models/user_model.dart'; // File yang berisi kelas User dan Role
 
 class BottomNav extends StatefulWidget {
-  final bool isAdmin; // Menentukan apakah user atau admin
-  const BottomNav({super.key, required this.isAdmin});
+  final User user; // Menerima objek User
+  const BottomNav({super.key, required this.user});
 
   @override
   State<BottomNav> createState() => _BottomNavState();
@@ -32,6 +33,8 @@ class _BottomNavState extends State<BottomNav> {
 
   @override
   void initState() {
+    super.initState();
+
     // Inisialisasi Halaman User
     userHome = Home();
     userMenu = Order();
@@ -42,12 +45,10 @@ class _BottomNavState extends State<BottomNav> {
     adminMenu = Menu2();
     adminProfile = Profile2();
 
-    // Tentukan halaman berdasarkan peran (user atau admin)
-    pages = widget.isAdmin
+    // Tentukan halaman berdasarkan role.name
+    pages = widget.user.role.name == "admin"
         ? [adminHome, adminMenu, adminProfile]
         : [userHome, userMenu, userProfile];
-
-    super.initState();
   }
 
   @override
@@ -56,10 +57,7 @@ class _BottomNavState extends State<BottomNav> {
       bottomNavigationBar: CurvedNavigationBar(
         height: 65,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        color: widget.isAdmin
-            ? const Color.fromARGB(255, 13, 34, 70)
-            : const Color.fromARGB(
-                255, 13, 34, 70), // Warna berbeda untuk admin dan user
+        color: const Color.fromARGB(255, 13, 34, 70),
         animationDuration: const Duration(milliseconds: 500),
         onTap: (index) {
           setState(() {
@@ -70,23 +68,17 @@ class _BottomNavState extends State<BottomNav> {
           Icon(
             Icons.home,
             size: 30,
-            color: widget.isAdmin
-                ? Colors.white
-                : const Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
           ),
           Icon(
             Icons.menu,
             size: 30,
-            color: widget.isAdmin
-                ? Colors.white
-                : const Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
           ),
           Icon(
             Icons.person,
             size: 30,
-            color: widget.isAdmin
-                ? Colors.white
-                : const Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
           ),
         ],
       ),
