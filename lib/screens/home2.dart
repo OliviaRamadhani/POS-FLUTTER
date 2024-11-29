@@ -51,18 +51,36 @@ class _Home2State extends State<Home2> {
   int totalOrders = 0;
   double pemasukan = 0.0;
 
+  List<String> months = [];
+  List<int> totalCustomers = [];
+
   // Fetch dashboard data from the Laravel API
   Future<void> fetchDashboardData() async {
-    final response = await http.get(Uri.parse('http://your-laravel-app.com/api/dashboard'));
+    try {
+      final dashboardResponse = await http.get(
+        Uri.parse('http://192.168.2.102:8000/api/dashboard/data'),
+      );
+      final chartResponse = await http.get(
+        Uri.parse('http://192.168.2.102:8000/api/reservations/customers-per-month'),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        totalOrders = data['total_orders'];
-        pemasukan = data['total_revenue'];
-      });
-    } else {
-      throw Exception('Failed to load dashboard data');
+      if (dashboardResponse.statusCode == 200) {
+        final dashboardData = json.decode(dashboardResponse.body);
+        setState(() {
+          totalOrders = dashboardData['total_orders'];
+          pemasukan = dashboardData['total_revenue'];
+        });
+      }
+
+      if (chartResponse.statusCode == 200) {
+        final chartData = json.decode(chartResponse.body);
+        setState(() {
+          months = List<String>.from(chartData['months']);
+          totalCustomers = List<int>.from(chartData['total_customers']);
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
     }
   }
 
@@ -204,87 +222,74 @@ class _Home2State extends State<Home2> {
   }
 
   Widget _buildRevenueChart() {
-  return Container(
-    height: 200,
-    padding: const EdgeInsets.all(8.0),
-    decoration: BoxDecoration(
-      color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(8.0),
-    ),
-    child: LineChart(
-      LineChartData(
-        gridData: FlGridData(show: true),
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              interval: 1000,
-              getTitlesWidget: (value, meta) {
-                // Format currency as "Rp xx,xxx" and ensure it doesn't overflow
-                String formattedValue = 'Rp ${value.toInt()}';
-                return Text(
-                  formattedValue,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.right, // Align text to the right
-                );
-              },
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(show: true),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 40,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(fontSize: 12),
+                  );
+                },
+              ),
             ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                switch (value.toInt()) {
-                  case 0:
-                    return const Text("Jan");
-                  case 1:
-                    return const Text("Feb");
-                  case 2:
-                    return const Text("Mar");
-                  case 3:
-                    return const Text("Apr");
-                  case 4:
-                    return const Text("May");
-                  default:
-                    return const Text("");
-                }
-              },
-            ),
-          ),
-        ),
-        minX: 0,
-        maxX: 4,
-        minY: 0,
-        maxY: 5000,
-        lineBarsData: [
-          LineChartBarData(
-            isCurved: true,
-            spots: const [
-              FlSpot(0, 1000),
-              FlSpot(1, 2000),
-              FlSpot(2, 3000),
-              FlSpot(3, 4000),
-              FlSpot(4, 3500),
-            ],
-            gradient: const LinearGradient(colors: [Colors.blue, Colors.lightBlueAccent]),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [Colors.blue.withOpacity(0.3), Colors.transparent],
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  int index = value.toInt();
+                  if (index >= 0 && index < months.length) {
+                    return Text(
+                      months[index],
+                      style: const TextStyle(fontSize: 12),
+                    );
+                  }
+                  return const Text('');
+                },
               ),
             ),
           ),
-        ],
+          minX: 0,
+          maxX: (months.isNotEmpty ? months.length - 1 : 4).toDouble(),
+          minY: 0,
+          maxY: (totalCustomers.isNotEmpty
+                  ? totalCustomers.reduce((a, b) => a > b ? a : b)
+                  : 5000)
+              .toDouble(),
+          lineBarsData: [
+            LineChartBarData(
+              isCurved: true,
+              spots: totalCustomers
+                  .asMap()
+                  .entries
+                  .map((e) => FlSpot(e.key.toDouble(), e.value.toDouble()))
+                  .toList(),
+              gradient: const LinearGradient(
+                  colors: [Colors.blue, Colors.lightBlueAccent]),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [Colors.blue.withOpacity(0.3), Colors.transparent],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildOrdersChart() {
     return Container(

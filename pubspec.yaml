@@ -43,7 +43,6 @@ dependencies:
   url_launcher: ^6.1.6
   shared_preferences: ^2.1.0
   image_picker: ^0.8.7+4
-  fl_chart: ^0.68.0
 
 
 

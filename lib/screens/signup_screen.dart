@@ -22,23 +22,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final AuthApi _authApi = AuthApi();
 
-  Future<void> _submitCredentials() async {
-    if (_formSignupKey.currentState!.validate()) {
+ Future<void> _register() async {
+  if (_formSignupKey.currentState!.validate()) {
+    if (_passwordController.text == _confirmPasswordController.text) {
       try {
-        await _authApi.submitCredentials(
+        await _authApi.register(
           _fullNameController.text,
           _emailController.text,
+          _passwordController.text,
+          _confirmPasswordController.text,
           _phoneController.text,
+          _otpController.text, // OTP dimasukkan setelah diverifikasi
         );
-        setState(() {
-          currentStep++;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration Successful!')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
+        );
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
     }
   }
+}
+
 
   Future<void> _verifyOtp() async {
     if (_otpController.text.isNotEmpty) {
@@ -111,7 +126,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   currentStep: currentStep,
                   onStepContinue: () {
                     if (currentStep == 0) {
-                      _submitCredentials();
+                      _register();
                     } else if (currentStep == 1) {
                       _verifyOtp();
                     } else if (currentStep == 2) {
