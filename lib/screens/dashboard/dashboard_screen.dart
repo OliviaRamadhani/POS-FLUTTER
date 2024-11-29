@@ -86,7 +86,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         FlSpot(4, 4200),
                       ],
                       isCurved: true,
-                      colors: [Colors.blue],
                       dotData: FlDotData(show: false),
                       belowBarData: BarAreaData(show: false),
                     ),

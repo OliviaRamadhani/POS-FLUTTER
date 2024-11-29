@@ -41,7 +41,6 @@ class _AccountPageState extends State<AccountPage> {
           _user = user;
           _nameController.text = user.name;
           _emailController.text = user.email;
-          _addressController.text = user.address;
           _phoneController.text = user.phone;
         });
       }

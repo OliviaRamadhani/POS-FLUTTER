@@ -278,71 +278,71 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget _buildLogoutButton() {
-    return GestureDetector(
-      onTap: () {
-        // Logout action
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Logout'),
-              content: Text('Are you sure you want to logout?'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    // Add logout action here
+Widget _buildLogoutButtoConfirm() {
+  return GestureDetector(
+    onTap: () {
+      // Logout action
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Logout'),
+            content: Text('Are you sure you want to logout?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Add logout action here
 
-                    // Navigate to WelcomeScreen after logging out
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WelcomeScreen(), // Navigate to WelcomeScreen
-                      ),
-                    );
-                  },
-                  child: Text('Logout'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 255, 7, 7),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: const Color.fromRGBO(199, 43, 43, 1).withOpacity(0.3),
-              blurRadius: 10,
-              offset: Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            "Logout",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+                  // Navigate to WelcomeScreen after logging out
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WelcomeScreen(), // Navigate to WelcomeScreen
+                    ),
+                  );
+                },
+                child: Text('Logout'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+    child: Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.redAccent.withOpacity(0.3),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          "Logout",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   // Show Notifications Settings as a Floating Dialog
   void _showNotificationsDialog(BuildContext context) {
@@ -404,18 +404,15 @@ class _ProfileState extends State<Profile> {
                 SizedBox(height: 20),
                 ListTile(
                   title: Text("English"),
-                  trailing:
-                      Radio(value: 1, groupValue: 1, onChanged: (value) {}),
+                  trailing: Radio(value: 1, groupValue: 1, onChanged: (value) {}),
                 ),
                 ListTile(
                   title: Text("Thai"),
-                  trailing:
-                      Radio(value: 2, groupValue: 1, onChanged: (value) {}),
+                  trailing: Radio(value: 2, groupValue: 1, onChanged: (value) {}),
                 ),
                 ListTile(
                   title: Text("Spanish"),
-                  trailing:
-                      Radio(value: 3, groupValue: 1, onChanged: (value) {}),
+                  trailing: Radio(value: 3, groupValue: 1, onChanged: (value) {}),
                 ),
               ],
             ),

@@ -4,6 +4,7 @@
       import 'package:pos2_flutter/screens/signin_screen.dart';
       import '../screens/dashboard/dashboard_screen.dart';
       import '../services/auth_api.dart';
+      import '../screens/menu.dart';
       import 'package:pos2_flutter/models/user_model.dart';
       import 'package:pos2_flutter/widgets/support_widget.dart';
       import 'dart:async'; // Import for Timer
@@ -446,78 +447,6 @@ void onOrderNowPressed() {
   }
 
 
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 5, 14, 61),
-            ),
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.asset(
-                    "images/siam1.png",
-                    height: 80,
-                    width: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  "Siam Spice Co.",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ListTile(
-            title: Text('Home'),
-            leading: Icon(Icons.house_outlined),
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => Home()),
-              );
-            },
-          ),
-          ExpansionTile(
-            title: Text('Inventori'),
-            leading: Icon(Icons.inventory_2_outlined),
-            children: [
-              ListTile(
-                title: Text('Produk'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => Inventory ()),
-                  );
-                },
-              ),
-            ],
-          ),
-          ListTile(
-            title: Text('Settings'),
-            leading: Icon(Icons.settings_outlined),
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => Home()),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
 
   Widget _buildCustomAppBar(BuildContext context) {
     return AppBar(
@@ -820,7 +749,7 @@ Widget _buildChefList() {
                 ),
               ),
               SizedBox(height: 8), // Add space between the image and the name
-              // Nama chef yang ditempatkan di bawah gambar
+              // chef yang ditempatkan di bawah gambar
               Text(
                 chefs[index]['name'] as String, // Cast to String
                 textAlign: TextAlign.center,

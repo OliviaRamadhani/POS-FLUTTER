@@ -168,7 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                   // Arahkan ke halaman berikutnya
                                 Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(builder: (context) => BottomNav()), 
+                                  MaterialPageRoute(builder: (context) => BottomNav(isAdmin: true,)), 
                                   ); 
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(

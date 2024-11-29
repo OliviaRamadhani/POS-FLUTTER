@@ -1,37 +1,79 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/screens/account_page.dart';
-import 'package:pos2_flutter/screens/my_address_page.dart';
-import 'package:pos2_flutter/screens/settings_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
+import '../services/auth_api.dart'; // Import AuthApi
+import 'order_history.dart';
+import 'my_address_page.dart';
+import 'settings_page.dart';
+import 'account_page.dart';
+import 'payment_methods_page.dart';
 import 'package:pos2_flutter/screens/welcome_screen.dart';
 
-class Profile2 extends StatelessWidget {
-  String? image = "images/siam1.png";
-  String? name = "Miranda West";
-  String? quote = "Enjoy the taste of Thailand at its finest.";
-  bool isPremium = true;
+class Profile2 extends StatefulWidget {
+  const Profile2({super.key});
 
-  Profile2({super.key});
+  @override
+  State<Profile2> createState() => _Profile2State();
+}
 
-  get context => null; // Default address
+class _Profile2State extends State<Profile2> {
+  User? user; // Data user akan disimpan di sini
+  bool isLoading = true; // Indikator loading saat data dimuat
+  final AuthApi authApi = AuthApi(); // Instance AuthApi untuk pengambilan data
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('auth_token'); // Ambil token dari SharedPreferences
+
+    if (token != null) {
+      final fetchedUser = await authApi.getUser(token); // Panggil API untuk mendapatkan data user
+      if (fetchedUser != null) {
+        setState(() {
+          user = fetchedUser;
+          isLoading = false;
+        });
+      } else {
+        // Jika token tidak valid atau API gagal
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      // Jika tidak ada token
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 20),
-            _buildUserInfo(),
-            const SizedBox(height: 20),
-            _buildProfileOptions(context),
-            const SizedBox(height: 20),
-            _buildLogoutButton(),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // Tampilkan loading spinner
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 20),
+                  _buildUserInfo(),
+                  const SizedBox(height: 20),
+                  _buildProfileOptions(context),
+                  const SizedBox(height: 20),
+                  _buildLogoutButton(),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
     );
   }
 
@@ -48,12 +90,11 @@ class Profile2 extends StatelessWidget {
           top: 40,
           right: 20,
           child: IconButton(
-            icon: Icon(Icons.settings_outlined, color: Colors.white),
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
             onPressed: () {
-              // Navigate to settings
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
             },
           ),
@@ -62,7 +103,7 @@ class Profile2 extends StatelessWidget {
           top: 40,
           left: 20,
           child: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -73,10 +114,21 @@ class Profile2 extends StatelessWidget {
           left: 0,
           right: 0,
           child: Center(
-            child: CircleAvatar(
-              radius: 80,
-              backgroundImage: AssetImage(image!),
-              backgroundColor: Colors.white,
+            child: GestureDetector(
+              onTap: () {
+                // Aksi yang akan dilakukan saat gambar profil diketuk
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AccountPage()),
+                );
+              },
+              child: CircleAvatar(
+                radius: 80,
+                backgroundImage: user?.photo != null
+                    ? NetworkImage(user!.photo!)
+                    : const AssetImage("images/siam1.png") as ImageProvider,
+                backgroundColor: Colors.white,
+              ),
             ),
           ),
         ),
@@ -88,45 +140,22 @@ class Profile2 extends StatelessWidget {
     return Column(
       children: [
         Text(
-          name!,
-          style: TextStyle(
+          user?.name ?? "Guest User",
+          style: const TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
-            color: Colors.black, // Font color black
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 10),
         Text(
-          quote!,
+          user?.email ?? "No Email Available",
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             color: Colors.black87,
           ),
         ),
-        const SizedBox(height: 10),
-        isPremium
-            ? Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.amber[700],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(width: 5),
-                    Text(
-                      "Admin",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : SizedBox.shrink(),
       ],
     );
   }
@@ -135,45 +164,70 @@ class Profile2 extends StatelessWidget {
     return Column(
       children: [
         _buildProfileOption(
-            icon: Icons.location_on_outlined,
-            text: "My Address",
-            onTap: () async {
-              // Navigate to Address Page and wait for the updated address
-              final updatedAddress = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MyAddressPage()),
-              );
-
-              // If an updated address is returned, update the profile address
-              if (updatedAddress != null) {
-                setState(() {});
-              }
-            }),
+          icon: Icons.location_on_outlined,
+          text: "My Address",
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyAddressPage()),
+          ),
+        ),
         _buildProfileOption(
-            icon: Icons.person_outline,
-            text: "Account",
-            onTap: () {
-              // Navigate to Account Page to edit profile data
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AccountPage()),
-              );
-            }),
+          icon: Icons.person_outline,
+          text: "Account",
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AccountPage()),
+          ),
+        ),
         _buildProfileOption(
-            icon: Icons.notifications_outlined,
-            text: "Notifications",
-            onTap: () {
-              // Show notifications settings as a floating modal
-              _showNotificationsDialog(context);
-            }),
-        _buildProfileOption(
-            icon: Icons.language_outlined,
-            text: "Language",
-            onTap: () {
-              // Show language settings as a floating modal
-              _showLanguageDialog(context);
-            }),
+          icon: Icons.history_outlined,
+          text: "Order History",
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OrderHistory()),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return GestureDetector(
+      onTap: () {
+        // Logout action
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.clear(); // Hapus semua data dari SharedPreferences
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+          );
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.redAccent.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Text(
+            "Logout",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -195,7 +249,7 @@ class Profile2 extends StatelessWidget {
               color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 10,
-              offset: Offset(0, 5),
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -208,7 +262,7 @@ class Profile2 extends StatelessWidget {
                 const SizedBox(width: 20),
                 Text(
                   text,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -223,7 +277,7 @@ class Profile2 extends StatelessWidget {
     );
   }
 
-  Widget _buildLogoutButton() {
+  Widget _buildLogoutButtoConfirm() {
     return GestureDetector(
       onTap: () {
         // Logout action
@@ -249,8 +303,7 @@ class Profile2 extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            WelcomeScreen(), // Navigate to WelcomeScreen
+                        builder: (context) => WelcomeScreen(), // Navigate to WelcomeScreen
                       ),
                     );
                   },
@@ -265,11 +318,11 @@ class Profile2 extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 20),
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 255, 7, 7),
+          color: Colors.redAccent,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color.fromRGBO(199, 43, 43, 1).withOpacity(0.3),
+              color: Colors.redAccent.withOpacity(0.3),
               blurRadius: 10,
               offset: Offset(0, 5),
             ),
@@ -288,87 +341,4 @@ class Profile2 extends StatelessWidget {
       ),
     );
   }
-
-  // Show Notifications Settings as a Floating Dialog
-  void _showNotificationsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Notifications Settings",
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                SizedBox(height: 20),
-                ListTile(
-                  title: Text("Enable Notifications"),
-                  trailing: Switch(value: true, onChanged: (value) {}),
-                ),
-                ListTile(
-                  title: Text("Push Notifications"),
-                  trailing: Switch(value: true, onChanged: (value) {}),
-                ),
-                ListTile(
-                  title: Text("Email Notifications"),
-                  trailing: Switch(value: false, onChanged: (value) {}),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Show Language Settings as a Floating Dialog
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Language Settings",
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                SizedBox(height: 20),
-                ListTile(
-                  title: Text("English"),
-                  trailing:
-                      Radio(value: 1, groupValue: 1, onChanged: (value) {}),
-                ),
-                ListTile(
-                  title: Text("Thai"),
-                  trailing:
-                      Radio(value: 2, groupValue: 1, onChanged: (value) {}),
-                ),
-                ListTile(
-                  title: Text("Spanish"),
-                  trailing:
-                      Radio(value: 3, groupValue: 1, onChanged: (value) {}),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void setState(Null Function() param0) {}
 }

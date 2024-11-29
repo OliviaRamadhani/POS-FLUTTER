@@ -6,9 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
 class AuthApi {
+  final String apiUrl = 'http://192.168.2.102:8000/api/auth';
+
+
   Future<User?> login(String email, String password) async {
     final response = await http.post(
-      Uri.parse('http://192.168.2.102:8000/api/auth/login'), // Ganti dengan URL login API Laravel Anda
+      Uri.parse('$apiUrl/login'), // Ganti dengan URL login API Laravel Anda
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -27,7 +30,7 @@ class AuthApi {
   // Fungsi untuk email
   Future<bool> sendOtpToEmail(String email, String name) async {
     final response = await http.post(
-      Uri.parse('http://192.168.2.102:8000/api/auth/register/get-email-otp'),
+      Uri.parse('$apiUrl/register/get/email/otp'),
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       body: jsonEncode({'email': email, 'name': name}),
     );
@@ -47,7 +50,7 @@ class AuthApi {
     String otpEmail,
   ) async {
     final response = await http.post(
-      Uri.parse('http://192.168.2.102:8000/api/auth/register'),
+      Uri.parse('$apiUrl/register'),
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       body: jsonEncode({
         'name': name,
@@ -67,24 +70,35 @@ class AuthApi {
     }
   }
 
-  Future<bool> verifyOtp({required String email, required String otp}) async {
-  // Panggil endpoint API Anda untuk verifikasi OTP
-  final response = await http.post(
-    Uri.parse('https://192.168.2.102/verify-otp'),
-    body: {
-      'email': email,
-      'otp': otp,
-    },
-  );
-
-  if (response.statusCode == 200) {
-    // Jika OTP valid
-    return true;
-  } else {
-    // Jika OTP tidak valid
-    return false;
+  Future<void> submitCredentials(String name, String email, String phone) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/register/get/email/otp'),
+      body: {'name': name, 'email': email, 'phone': phone},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to submit credentials');
+    }
   }
-}
+
+  Future<void> verifyOtp(String email, String otp) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/register/check/email/otp'),
+      body: {'email': email, 'otp': otp},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to verify OTP');
+    }
+  }
+
+  Future<void> submitPassword(String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/register'),
+      body: {'email': email, 'password': password},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to set password');
+    }
+  }
 
 
   // Fungsi untuk menyimpan token
@@ -151,7 +165,7 @@ class AuthApi {
       }
       return null;
   }
-
+  
 
   // Fungsi untuk logout (menghapus token dan data user)
   Future<void> logout() async {

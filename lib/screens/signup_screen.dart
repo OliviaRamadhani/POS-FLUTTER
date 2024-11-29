@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:icons_plus/icons_plus.dart';
-import 'package:pos2_flutter/services/auth_api.dart'; // Impor AuthApi
+import 'package:pos2_flutter/services/auth_api.dart';
 import 'package:pos2_flutter/screens/signin_screen.dart';
-import 'package:pos2_flutter/theme/theme.dart';
-import 'package:pos2_flutter/models/user_model.dart'; // Impor model User
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -14,51 +11,70 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formSignupKey = GlobalKey<FormState>();
-  bool agreePersonalData = true;
+  int currentStep = 0;
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _passwordConfirmationController = TextEditingController(); // Controller untuk konfirmasi password
-  final TextEditingController _addressController = TextEditingController();  // Controller untuk alamat
-  final TextEditingController _phoneController = TextEditingController();     // Controller untuk nomor telepon
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
-  // Fungsi untuk sign up
-  Future<void> signUp() async {
-    if (_formSignupKey.currentState!.validate() && agreePersonalData) {
+  final AuthApi _authApi = AuthApi();
+
+  Future<void> _submitCredentials() async {
+    if (_formSignupKey.currentState!.validate()) {
       try {
-        final authApi = AuthApi();
-        final User? user = await authApi.register(
+        await _authApi.submitCredentials(
           _fullNameController.text,
           _emailController.text,
-          _passwordController.text,
-          _addressController.text,
           _phoneController.text,
-          _passwordConfirmationController.text, // Kirim konfirmasi password
         );
-
-        if (user != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sign Up Successful!')),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const SignInScreen()),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sign Up Failed!')),
-          );
-        }
+        setState(() {
+          currentStep++;
+        });
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-    } else if (!agreePersonalData) {
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    if (_otpController.text.isNotEmpty) {
+      try {
+        await _authApi.verifyOtp(_emailController.text, _otpController.text);
+        setState(() {
+          currentStep++;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _submitPassword() async {
+    if (_passwordController.text == _confirmPasswordController.text) {
+      try {
+        await _authApi.submitPassword(
+          _emailController.text,
+          _passwordController.text,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign Up Successful!')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the processing of personal data'),
-        ),
+        const SnackBar(content: Text('Passwords do not match')),
       );
     }
   }
@@ -66,179 +82,112 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFEFF3F6), // Warna background
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/bgsi.png"),
-            fit: BoxFit.cover,
-          ),
+          image: AssetImage("images/bgsi.png"),
+          fit: BoxFit.cover,
         ),
-        child: Column(
+      ),
+      child: Column(
           children: [
-            const Expanded(flex: 1, child: SizedBox(height: 10)),
+            const SizedBox(height: 80), // Spasi untuk posisi logo
+
+            const SizedBox(height: 20), // Spasi antara logo dan kontainer
             Expanded(
-              flex: 4,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(25.0, 50.0, 25.0, 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40.0),
-                    topRight: Radius.circular(40.0),
+                    topLeft: Radius.circular(40),
+                    topRight: Radius.circular(40),
                   ),
                 ),
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: _formSignupKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          "images/bgg.png",
-                          height: 200,
-                          width: 300,
-                          fit: BoxFit.cover,
-                        ),
-                        const SizedBox(height: 1.0),
-                        const SizedBox(height: 1.0),
-                        // Full Name TextField
-                        TextFormField(
-                          controller: _fullNameController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter Full name';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text('Full Name'),
-                            hintText: 'Enter Full Name',
-                          ),
-                        ),
-                        const SizedBox(height: 10.0),
-                        // Email TextField
-                        TextFormField(
-                          controller: _emailController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter Email';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text('Email'),
-                            hintText: 'Enter Email',
-                          ),
-                        ),
-                        const SizedBox(height: 10.0),
-                        // Password TextField
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          obscuringCharacter: '*',
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter Password';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text('Password'),
-                            hintText: 'Enter Password',
-                          ),
-                        ),
-                        const SizedBox(height: 10.0),
-                        // Confirm Password TextField
-                        TextFormField(
-                          controller: _passwordConfirmationController,
-                          obscureText: true,
-                          obscuringCharacter: '*',
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please confirm your password';
-                            }
-                            if (value != _passwordController.text) {
-                              return 'Passwords do not match';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text('Confirm Password'),
-                            hintText: 'Re-enter Password',
-                          ),
-                        ),
-                        const SizedBox(height: 10.0),
-                        // Address TextField
-                        TextFormField(
-                          controller: _addressController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your address';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text('Address'),
-                            hintText: 'Enter Address',
-                          ),
-                        ),
-                        const SizedBox(height: 10.0),
-                        // Phone Number TextField
-                        TextFormField(
-                          controller: _phoneController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your phone number';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text('Phone Number'),
-                            hintText: 'Enter Phone Number',
-                          ),
-                        ),
-                        const SizedBox(height: 10.0),
-                        // Agree to processing personal data
-                        Row(
+                child: Stepper(
+                  currentStep: currentStep,
+                  onStepContinue: () {
+                    if (currentStep == 0) {
+                      _submitCredentials();
+                    } else if (currentStep == 1) {
+                      _verifyOtp();
+                    } else if (currentStep == 2) {
+                      _submitPassword();
+                    }
+                  },
+                  onStepCancel: currentStep > 0
+                      ? () {
+                          setState(() {
+                            currentStep--;
+                          });
+                        }
+                      : null,
+                  steps: [
+                    Step(
+                      title: const Text('Credentials'),
+                      content: Form(
+                        key: _formSignupKey,
+                        child: Column(
                           children: [
-                            Checkbox(
-                              value: agreePersonalData,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  agreePersonalData = value!;
-                                });
+                            TextFormField(
+                              controller: _fullNameController,
+                              validator: (value) =>
+                                  value!.isEmpty ? 'Enter your full name' : null,
+                              decoration: const InputDecoration(labelText: 'Full Name'),
+                            ),
+                            TextFormField(
+                              controller: _emailController,
+                              validator: (value) =>
+                                  value!.isEmpty ? 'Enter your email' : null,
+                              decoration: const InputDecoration(labelText: 'Email'),
+                            ),
+                            TextFormField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,  // Menampilkan keyboard numerik
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Enter your phone number';
+                                }
+                                if (int.tryParse(value) == null) {
+                                  return 'Enter a valid phone number';
+                                }
+                                return null;
                               },
-                              activeColor: lightColorScheme.primary,
-                            ),
-                            const Text(
-                              'I agree to the processing of ',
-                              style: TextStyle(color: Colors.black45),
-                            ),
-                            Text(
-                              'Personal data',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: lightColorScheme.primary,
-                              ),
-                            ),
+                              decoration: const InputDecoration(labelText: 'Phone'),
+                            )
                           ],
                         ),
-                        const SizedBox(height: 25.0),
-                        const SizedBox(height: 25.0),
-                        // Sign up button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: signUp,
-                            child: const Text('Sign up'),
-                          ),
-                        ),
-                        const SizedBox(height: 20.0),
-                      ],
+                      ),
                     ),
-                  ),
+                    Step(
+                      title: const Text('Verify Email'),
+                      content: TextFormField(
+                        controller: _otpController,
+                        decoration: const InputDecoration(labelText: 'Enter OTP'),
+                      ),
+                    ),
+                    Step(
+                      title: const Text('Set Password'),
+                      content: Column(
+                        children: [
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(labelText: 'Password'),
+                          ),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                                labelText: 'Confirm Password'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

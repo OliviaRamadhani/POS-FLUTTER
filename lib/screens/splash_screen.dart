@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pos2_flutter/screens/bottomnav.dart'; // Import the welcome screen
+import 'package:pos2_flutter/screens/bottomnav.dart';
+import 'package:pos2_flutter/screens/welcome_screen.dart'; // Import the welcome screen
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -42,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     await Future.delayed(const Duration(seconds: 3)); // Duration of the splash screen
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const BottomNav()),
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
     );
   }
 

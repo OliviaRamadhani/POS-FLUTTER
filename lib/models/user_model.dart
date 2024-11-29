@@ -2,7 +2,7 @@ class User {
   final int id;
   final String uuid;
   final String name;
-  final String address;
+  final String? address;
   final String email;
   final String phone;
   final String? photo;
@@ -13,7 +13,7 @@ class User {
     required this.id,
     required this.uuid,
     required this.name,
-    required this.address,
+    this.address,
     required this.email,
     required this.phone,
     this.photo,
