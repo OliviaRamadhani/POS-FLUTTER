@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:pos2_flutter/screens/payment.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class CartScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cart;
-  final Function(List<Map<String, dynamic>>) onCartUpdated;
+  final Function(int, int) updateQuantity; // Tambahkan parameter ini
+  final Function(int) removeItem; // Tambahkan parameter ini
+  final Function(List<Map<String, dynamic>>) onCartUpdated; // Tambahkan parameter ini
 
   const CartScreen({
     Key? key,
     required this.cart,
-    required this.onCartUpdated,
-    required void Function(int index) removeItem,
-    required void Function(int index, int change) updateQuantity,
+    required this.updateQuantity, // Pastikan parameter ini ada
+    required this.removeItem, // Pastikan parameter ini ada
+    required this.onCartUpdated, // Pastikan parameter ini ada
   }) : super(key: key);
 
   @override
@@ -23,11 +23,11 @@ class _CartScreenState extends State<CartScreen> {
   late List<Map<String, dynamic>> _cart;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    // Buat salinan cart untuk mencegah modifikasi langsung
     _cart = List<Map<String, dynamic>>.from(widget.cart);
   }
 
@@ -37,7 +37,6 @@ class _CartScreenState extends State<CartScreen> {
       if (_cart[index]['quantity'] <= 0) {
         _cart.removeAt(index);
       }
-      // Panggil callback untuk update cart di parent
       widget.onCartUpdated(_cart);
     });
   }
@@ -45,55 +44,29 @@ class _CartScreenState extends State<CartScreen> {
   void removeItem(int index) {
     setState(() {
       _cart.removeAt(index);
-      // Panggil callback untuk update cart di parent
       widget.onCartUpdated(_cart);
     });
   }
-
-  void proceedToPayment(BuildContext context) {
-  final name = _nameController.text.trim();
-  if (name.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Masukkan nama Anda terlebih dahulu')),
-    );
-    return;
-  }
-
-  final totalAmount = calculateTotal();
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => PaymentPage(
-        transactionId: "ORDER-${DateTime.now().millisecondsSinceEpoch}",
-        amount: totalAmount,
-        customerName: name,
-        customerEmail: "email@example.com", // Sesuaikan email atau ambil dari input pengguna
-        cart: _cart,
-      ),
-    ),
-  );
-}
-
 
   void clearCart() {
     setState(() {
       _cart.clear();
-      // Panggil callback untuk update cart di parent
       widget.onCartUpdated(_cart);
     });
   }
 
-  String formatCurrency(double amount) {
-    return "Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.")}"; 
-  }
-
   double calculateTotal() {
-    return _cart.fold(0, (sum, item) => sum + (item['price'] * (item['quantity'] ?? 1)));
+    return _cart.fold(
+        0, (sum, item) => sum + (item['price'] * (item['quantity'] ?? 1)));
   }
 
-  Future<void> checkout(BuildContext context) async {
+  String formatCurrency(double amount) {
+    return "Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.")}";
+  }
+
+  void checkout(BuildContext context) {
     final name = _nameController.text.trim();
-    final notes = _notesController.text.trim();
+    const email = "email@example.com"; // Ubah jika perlu menggunakan input email.
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,134 +75,16 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    final data = {
-      'name': name,
-      'notes': notes,
-      'items': _cart.map((item) {
-        return {
-          'id': item['id'],
-          'name': item['name'],
-          'quantity': item['quantity'],
-          'price': item['price'],
-        };
-      }).toList(),
-      'total_price': calculateTotal(),
-    };
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://192.168.2.102/api/orders/'), // Ganti dengan endpoint Laravel Anda
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer your-auth-token', // Tambahkan token autentikasi jika diperlukan
-        },
-        body: jsonEncode(data),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-
-        // Reset cart setelah berhasil checkout
-        clearCart();
-        Navigator.pop(context);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Pesanan berhasil dibuat!')),
-        );
-      } else {
-        final errorData = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuat pesanan: ${errorData['message']}')),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $error')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Konfirmasi Pesanan',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Nama Pemesan', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(name),
-              ],
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total Pesanan', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(formatCurrency(calculateTotal()), style: TextStyle(color: Colors.black)),
-              ],
-            ),
-            if (notes.isNotEmpty) ...[
-              SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Catatan', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(notes),
-                ],
-              ),
-            ],
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Reset cart setelah checkout
-                clearCart();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Pesanan berhasil dibuat!'),
-                    backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 5, 14, 61),
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Konfirmasi Pesanan',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentPage(
+          transactionId: "ORDER-${DateTime.now().millisecondsSinceEpoch}",
+          amount: calculateTotal(),
+          customerName: name,
+          customerEmail: email,
+          cart: _cart,
+          notes: _notesController.text,  // Pass the notes here,
         ),
       ),
     );
@@ -367,7 +222,8 @@ class _CartScreenState extends State<CartScreen> {
                           child: Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.remove_circle_outline, color: Color.fromARGB(255, 5, 14, 61),),
+                                icon: Icon(Icons.remove_circle_outline,
+                                    color: Color.fromARGB(255, 5, 14, 61)),
                                 onPressed: () => updateQuantity(index, -1),
                               ),
                               Text(
@@ -378,7 +234,8 @@ class _CartScreenState extends State<CartScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.add_circle_outline, color: Color.fromARGB(255, 5, 14, 61),),
+                                icon: Icon(Icons.add_circle_outline,
+                                    color: Color.fromARGB(255, 5, 14, 61)),
                                 onPressed: () => updateQuantity(index, 1),
                               ),
                             ],
@@ -387,20 +244,22 @@ class _CartScreenState extends State<CartScreen> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 SizedBox(height: 16),
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
                     labelText: 'Nama Penerima',
                     hintText: 'Masukkan nama Anda',
-                    prefixIcon: Icon(Icons.person, color: Color.fromARGB(255, 5, 14, 61),),
+                    prefixIcon: Icon(Icons.person,
+                        color: Color.fromARGB(255, 5, 14, 61)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color.fromARGB(255, 5, 14, 61), width: 2),
+                      borderSide: BorderSide(
+                          color: Color.fromARGB(255, 5, 14, 61), width: 2),
                     ),
                   ),
                 ),
@@ -410,13 +269,15 @@ class _CartScreenState extends State<CartScreen> {
                   decoration: InputDecoration(
                     labelText: 'Catatan Pesanan',
                     hintText: 'Tambahkan catatan (opsional)',
-                    prefixIcon: Icon(Icons.notes, color: Color.fromARGB(255, 5, 14, 61), ),
+                    prefixIcon: Icon(Icons.notes,
+                        color: Color.fromARGB(255, 5, 14, 61)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color.fromARGB(255, 5, 14, 61), width: 2),
+                      borderSide: BorderSide(
+                          color: Color.fromARGB(255, 5, 14, 61), width: 2),
                     ),
                   ),
                 ),
@@ -463,8 +324,9 @@ class _CartScreenState extends State<CartScreen> {
                   ElevatedButton(
                     onPressed: () => checkout(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 5, 14, 61), 
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                      backgroundColor: Color.fromARGB(255, 5, 14, 61),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -474,7 +336,7 @@ class _CartScreenState extends State<CartScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // Menjadikan teks berwarna putih
+                        color: Colors.white,
                       ),
                     ),
                   ),

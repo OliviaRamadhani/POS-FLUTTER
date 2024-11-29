@@ -2,13 +2,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart'; // For currency formatting
 
 class PaymentPage extends StatefulWidget {
   final String transactionId;
   final double amount;
   final String customerName;
   final String customerEmail;
+  final String notes;
   final List<Map<String, dynamic>> cart;
+  
 
   PaymentPage({
     required this.transactionId,
@@ -16,6 +19,7 @@ class PaymentPage extends StatefulWidget {
     required this.customerName,
     required this.customerEmail,
     required this.cart,
+    required this.notes,
   });
 
   @override
@@ -23,10 +27,12 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  final String serverKey = "SB-Mid-server-6YPojuzmmkjXS41U_OOjHr6t";
+  final String serverKey = "SB-Mid-server-6YPojuzmmkjXS41U_OOjHr6t"; // Replace with your actual server key
   final String baseUrl = "https://api.sandbox.midtrans.com/v2";
 
   bool isProcessing = false;
+  double pemasukan = 0.0; // Variabel pemasukan lokal
+  double totalAmount = 0.0; // Variabel totalAmou
 
   String generateOrderId() {
     return "order_${DateTime.now().millisecondsSinceEpoch}";
@@ -44,62 +50,74 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Future<void> processPayment() async {
-    setState(() {
-      isProcessing = true;
+  setState(() {
+    isProcessing = true;
+  });
+
+  try {
+    final url = Uri.parse('$baseUrl/charge');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic ${base64Encode(utf8.encode('$serverKey:'))}',
+    };
+
+    final orderId = generateOrderId();
+
+    final body = jsonEncode({
+      "payment_type": "gopay", // Pilih metode pembayaran (misalnya gopay, credit_card, dll.)
+      "transaction_details": {
+        "order_id": orderId,
+        "gross_amount": widget.amount,
+      },
+      "customer_details": {
+        "first_name": widget.customerName,
+        "email": widget.customerEmail,
+      },
+      "item_details": buildItemDetails(),
+      "gopay": {
+        "enable_callback": true,
+        "callback_url": "https://your.callback.url", // Ganti dengan URL callback Anda
+      },
     });
 
-    try {
-      final url = Uri.parse('$baseUrl/charge');
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic ${base64Encode(utf8.encode('$serverKey:'))}',
-      };
+    final response = await http.post(url, headers: headers, body: body);
 
-      final orderId = generateOrderId();
+    final data = jsonDecode(response.body);
 
-      final body = jsonEncode({
-        "payment_type": "gopay",
-        "transaction_details": {
-          "order_id": orderId,
-          "gross_amount": widget.amount,
-        },
-        "customer_details": {
-          "first_name": widget.customerName,
-          "email": widget.customerEmail,
-        },
-        "item_details": buildItemDetails(),
-      });
+    if (response.statusCode == 200) {
+      if (data['status_code'] == '201') {
+        final deeplinkUrl = data['actions']
+            .firstWhere((action) => action['name'] == 'deeplink-redirect')['url'];
 
-      final response = await http.post(url, headers: headers, body: body);
+        // Menambahkan pemasukan jika pembayaran berhasil
+        setState(() {
+          pemasukan += totalAmount; // Total amount dibayar akan ditambahkan ke pemasukan
+        });
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        if (data['status_code'] == '201') {
-          final deeplinkUrl = data['actions'][1]['url'];
-          _launchUrl(deeplinkUrl);
-        } else {
-          _showMessage("Payment failed: ${data['status_message']}");
-        }
+        _launchUrl(deeplinkUrl); // Luncurkan URL pembayaran
       } else {
-        _showMessage("Error: ${response.body}");
+        _showMessage("Payment failed: ${data['status_message']}");
       }
-    } catch (e) {
-      _showMessage("Error occurred: $e");
-    } finally {
-      setState(() {
-        isProcessing = false;
-      });
+    } else {
+      _showMessage("Error: ${response.body}");
     }
+  } catch (e) {
+    _showMessage("Error occurred: $e");
+  } finally {
+    setState(() {
+      isProcessing = false;
+    });
   }
+}
+
 
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        await launchUrl(uri, mode: LaunchMode.externalApplication); // Open in external browser
       } else {
-        await launchUrl(uri, mode: LaunchMode.inAppWebView);
+        await launchUrl(uri, mode: LaunchMode.inAppWebView); // Open in in-app WebView if external app is not available
       }
     } catch (e) {
       _showMessage("Error launching URL: $e");
@@ -112,8 +130,21 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Function to format currency to include periods (e.g., 75.000)
+  String formatCurrency(double amount) {
+    final formatter = NumberFormat('#,##0', 'id_ID'); // Indonesian locale
+    return formatter.format(amount);
+  }
+
   @override
   Widget build(BuildContext context) {
+    double totalAmount = 0.0;
+
+    // Calculate the total amount from cart
+    widget.cart.forEach((item) {
+      totalAmount += item['price'] * item['quantity'];
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -131,7 +162,7 @@ class _PaymentPageState extends State<PaymentPage> {
           ],
         ),
         backgroundColor: Colors.deepPurple,
-        elevation: 10, 
+        elevation: 10,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -141,22 +172,6 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.info_outline, color: Colors.white),
-            onPressed: () {
-              // Action for the button
-              print("Info clicked");
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.settings, color: Colors.white),
-            onPressed: () {
-              // Action for the button
-              print("Settings clicked");
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -164,73 +179,109 @@ class _PaymentPageState extends State<PaymentPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Card for displaying customer name and icon
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ListTile(
+                  leading: Icon(Icons.person, color: Colors.deepPurple, size: 40),
+                  title: Text(
+                    'Customer Name : ${widget.customerName}',
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
               _buildSectionTitle('Order Summary'),
               Card(
-                elevation: 5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: ListTile(
-                  leading: Icon(Icons.person, color: Colors.deepPurple),
-                  title: Text('Customer name', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(widget.customerName),
+                elevation: 6,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Column(
+                  children: [
+                    // Order title with an icon
+                    ListTile(
+                      leading: Icon(Icons.list_alt, color: Colors.deepPurple),
+                      title: Text('Pesanan yang Dipesan', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    // List of ordered items
+                    Column(
+                      children: widget.cart.map((item) {
+                        double itemTotal = item['price'] * item['quantity']; // Calculate total per item
+                        return Card(
+                          elevation: 6,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            leading: Image.network(
+                              item['imageUrl'] ?? 'https://via.placeholder.com/50', // Default image
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(item['name'], style: TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text(item['description'] ?? 'No description'),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Qty: ${item['quantity']}',
+                                  style: TextStyle(color: Colors.deepPurple),
+                                ),
+                                Text(
+                                  'Rp ${formatCurrency(item['price'])} / item',
+                                  style: TextStyle(
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                                Text(
+                                  'Rp ${formatCurrency(itemTotal)}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: 10),
+              // Notes Section
               Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              child: Column(
-                children: widget.cart.map((item) {
-                  return ListTile(
-                    leading: Icon(Icons.confirmation_number, color: Colors.deepPurple),
-                    title: Text('${item['name']} - Quantity', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(item['quantity'].toString()),
-                  );
-                }).toList(),
-              ),
-            ),
-
-              SizedBox(height: 10),
-              Card(
-                elevation: 5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 6,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
-                  leading: Icon(Icons.monetization_on, color: Colors.deepPurple),
-                  title: Text('Amount', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('Rp ${widget.amount.toStringAsFixed(0)}'),
+                  leading: Icon(Icons.note_add, color: Colors.deepPurple),
+                  title: Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(widget.notes.isEmpty ? 'No notes' : widget.notes),
                 ),
               ),
               SizedBox(height: 20),
               _buildSectionTitle('Payment Summary'),
-             Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              child: Column(
-                children: [
-                  ListTile(
-                    title: Text('Total Payment :', 
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.deepPurple
-                      )
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text('Total Payment :',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Rp ${widget.amount.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 32,  // Larger font size for emphasis
-                        color: Colors.deepPurple,
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Rp ${formatCurrency(totalAmount)}',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 32, color: Colors.deepPurple),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-
-              SizedBox(height: 20),
               SizedBox(height: 30),
               Center(
                 child: isProcessing
